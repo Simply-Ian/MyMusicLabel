@@ -22,3 +22,8 @@ The following code conventions are applied to the project:
 * Comments are written in Russian, **but you are not allowed to place any comments**
 * Agents **are not allowed to commit any files** (I will revert such commits and preserve changes manually, anyway).
 * Only synchronous method invocations are allowed and no asynchronous methods should be defined since the application does not communicate with side APIs via network nor with database, etc.
+* All user commands (MyMusicLabel.Commands.ICommand implementations) are annotated with CommandName attribute. Its only parameter is
+  * Command name if the command belongs to no group
+  * Group name + command name if the command represents an action over a certain instance of an entity
+  * Group name + "list" if the command is purposed to print list of all the available entities of a certain type
+  Group names usually correspond to entities they are performed over

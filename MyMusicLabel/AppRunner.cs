@@ -32,12 +32,8 @@ public class AppRunner (IServiceProvider services)
         args = rawInput.Split(' ', StringSplitOptions.RemoveEmptyEntries).ToList();
             
         StringBuilder commandKeyBuilder = new(args[0]);
-        commandKeyBuilder.Append(args.Count switch
-        {
-            >= 3 => args[2],
-            2 => "view",
-            _ => ""
-        });
+        if (args.Count >= 3) commandKeyBuilder.Append(args[2]);
+        if (args is [_, "list"]) commandKeyBuilder.Append("list");
             
         return commandKeyBuilder.ToString();
     }
