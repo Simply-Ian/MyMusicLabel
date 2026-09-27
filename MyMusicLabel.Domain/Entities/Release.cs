@@ -14,29 +14,28 @@ public enum Style
     AuthorSong
 }
 
-public class Release : BaseEntity
+public class Release(Guid id, Style style, string title, List<Guid> trackIds) : BaseEntity(id)
 {
-    private List<Guid> _trackIds = [];
     public IReadOnlyList<Guid> TrackIds
     {
-        get => _trackIds;
+        get => trackIds;
         set {
             if (IsPublishedAnywhere) 
                 throw new InvalidOperationException("Release is already published and thus track list cannot be edited");
             var trackSet = new HashSet<Guid>(value);
-            if (trackSet.Count != _trackIds.Count) 
+            if (trackSet.Count != trackIds.Count) 
                 throw new ArgumentException("Release cannot contain the same track more than once");
-            _trackIds.Clear();
-            value.ForEach(x => _trackIds.Add(x));
+            trackIds.Clear();
+            value.ForEach(x => trackIds.Add(x));
         }
     }
 
     public void AddTrack(Guid trackId)
     {
-        if (!_trackIds.Contains(trackId)) _trackIds.Add(trackId);
+        if (!trackIds.Contains(trackId)) trackIds.Add(trackId);
     }
 
-    public void RemoveTrack(Guid trackId) => _trackIds.Remove(trackId);
+    public void RemoveTrack(Guid trackId) => trackIds.Remove(trackId);
 
     private readonly HashSet<Guid> _platformsWherePublished = [];
     public IReadOnlySet<Guid> PlatformsWherePublished => _platformsWherePublished;
@@ -65,19 +64,12 @@ public class Release : BaseEntity
         get;
         set
         {
-            if (IsPublishedAnywhere) 
+            if (IsPublishedAnywhere)
                 throw new InvalidOperationException("Release is already published at some platform and thus cannot " +
                                                     "be renamed");
             field = value;
         }
-    }
-    
-    public Style Style { get; set; }
+    } = title;
 
-    public Release(Guid id, Style style, string title, List<Guid> trackIds) : base(id)
-    {
-        Style = style;
-        Title = title;
-        TrackIds = trackIds;
-    }
+    public Style Style { get; set; } = style;
 }
