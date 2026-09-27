@@ -10,10 +10,12 @@
     <ItemGroup>
       <PackageReference Include="FluentValidation" Version="12.1.1" />
       <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="11.0.0-rc.1.26425.128" />
+      <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.12" />
     </ItemGroup>
 
     <ItemGroup>
       <ProjectReference Include="..\MyMusicLabel.Domain\MyMusicLabel.Domain.csproj" />
+      <ProjectReference Include="..\MyMusicLabel.Infrastructure\MyMusicLabel.Infrastructure.csproj" />
     </ItemGroup>
 
     <ItemGroup>
