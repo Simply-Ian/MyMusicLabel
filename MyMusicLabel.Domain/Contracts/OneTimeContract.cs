@@ -1,6 +1,6 @@
 namespace MyMusicLabel.Domain.Contracts;
 
-public class OneTimeContract
+public record OneTimeContract
 {
     private IContractImplementation _imp;
     /// <summary>
