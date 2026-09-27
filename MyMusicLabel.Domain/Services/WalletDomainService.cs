@@ -1,3 +1,4 @@
+using Microsoft.Extensions.DependencyInjection;
 using MoreLinq;
 using MyMusicLabel.Domain.Entities;
 using MyMusicLabel.Domain.Repos;
@@ -7,52 +8,60 @@ namespace MyMusicLabel.Domain.Services;
 // Роялти не рассчитываются одновременно с прибылью, т. к. могут быть ценны сами по себе.
 public class WalletDomainService
 (
-    IReadOnlyDictionary<Guid, StreamingPlatformDomainService> platforms,
+    IServiceProvider platformsProvider,
     IArtistRepository artistRepo,
     ITrackRepository trackRepo
 )
 {
+    private IEnumerable<IStreamingPlatformAppService> _allPlatforms =>
+        platformsProvider.GetKeyedServices<IStreamingPlatformAppService>(KeyedService.AnyKey);
+    private IStreamingPlatformAppService? _getPlatform(Guid platformId) =>
+        platformsProvider.GetKeyedService<IStreamingPlatformAppService>(platformId);
+    
     public decimal ComputeTotalProfitByPeriod(DateOnly startDate, DateOnly endDate)
-        => ComputeTotalIncomeByPeriod(startDate, endDate) - ComputeTotalRoyaltyByPeriod(startDate, endDate);
-
-    public decimal ComputeTotalIncomeByPeriod(DateOnly startDate, DateOnly endDate)
+        => ComputeTotalIncomeByPeriod(startDate, endDate) 
+           - ComputeTotalRoyaltyByPeriod(startDate, endDate);
+    public decimal ComputeTotalIncomeByPeriod(DateOnly startDate, DateOnly endDate, Guid? platformId = null)
         => artistRepo.GetAllArtists()
             .Sum(
                 artist => artist.Releases.Sum(
-                    release => platforms.Values.Sum(
-                        platform => platform.GetTrackPaymentsInPeriod(release.Id, startDate, endDate).Sum()
-                    )
+                    release => platformId == null? 
+                        _allPlatforms.Sum(
+                            platform => platform.GetTrackPaymentsInPeriod(release.Id, startDate, endDate).Sum()
+                        )
+                        : _getPlatform(platformId.Value)
+                            ?.GetTrackPaymentsInPeriod(release.Id, startDate, endDate).Sum() ?? 0
                 )
             );
     
     public decimal ComputeTotalRoyaltyByPeriod(DateOnly startDate, DateOnly endDate)
         => artistRepo.GetAllArtists()
             .Sum(
-                artist => artist.Releases.Sum(release => ComputeRoyaltyForRelease(release, artist.Id, startDate, endDate))
+                artist => artist.Releases.Sum(
+                    release => ComputeTotalRoyaltyForRelease(release, artist.Id, startDate, endDate)
+                )
             );
-
-    public decimal ComputeIncomeForRelease(Release release, DateOnly startDate, DateOnly endDate)
-    {
-        if (!(startDate <= release.PublicationDate && release.PublicationDate <= endDate)) return 0;
-        return release.TrackIds.Select(id => 
-            platforms.Values.Sum(platform => platform.GetTrackPaymentsInPeriod(id, startDate, endDate).Sum()
-            )
-        ).Sum();
-    }
     
-    public decimal ComputeRoyaltyForRelease(Release release, Guid artistId, DateOnly startDate, DateOnly endDate)
+    /// <returns>Сумму выплат за период всем артистам, кто принимал участие в работе над релизом: композиторам и авторам
+    /// текстов для всех треков, а также исполнителю</returns>
+    public decimal ComputeTotalRoyaltyForRelease(
+        Release release, 
+        Guid performerId, 
+        DateOnly startDate, 
+        DateOnly endDate
+    )
     {
         if (!(startDate <= release.PublicationDate && release.PublicationDate <= endDate)) return 0;
         
         var incomesPerTrack = new Dictionary<Guid, decimal>(release.TrackIds.Select(
             id => new KeyValuePair<Guid, decimal>(id, 
-                platforms.Values.Sum(
+                _allPlatforms.Sum(
                     platform => platform.GetTrackPaymentsInPeriod(id, startDate, endDate).Sum()
                 )
             )
         ));
         var totalIncomeForRelease = incomesPerTrack.Values.Sum();
-        var performer = artistRepo.GetArtist(artistId);
+        var performer = artistRepo.GetArtist(performerId);
         var performerRoyalties = performer.Releases.Contains(release) ? 
             performer.CalculatePayments(totalIncomeForRelease, startDate, endDate)
             : throw new ArgumentException("The artist does not perform this release");
@@ -77,7 +86,7 @@ public class WalletDomainService
         trackRepo.GetTracksBySelector(track => track.LyricistId == artistId)
             .ForEach(track =>
             {
-                var totalIncomeForTrack = platforms.Values.Sum(platform =>
+                var totalIncomeForTrack = _allPlatforms.Sum(platform =>
                     platform.GetTrackPaymentsInPeriod(track.Id, startDate, endDate).Sum()
                 );
                 lyricistRoyalty += track.CalculateLyricistRoyalty(totalIncomeForTrack, startDate, endDate);
@@ -94,4 +103,13 @@ public class WalletDomainService
                     .Where(release => release.Style == style)
                     .Sum(release => ComputeIncomeForRelease(release, startDate, endDate))
             );
+    
+    public decimal ComputeIncomeForRelease(Release release, DateOnly startDate, DateOnly endDate)
+    {
+        if (!(startDate <= release.PublicationDate && release.PublicationDate <= endDate)) return 0;
+        return release.TrackIds.Select(id => 
+            _allPlatforms.Sum(platform => platform.GetTrackPaymentsInPeriod(id, startDate, endDate).Sum()
+            )
+        ).Sum();
+    }
 }
