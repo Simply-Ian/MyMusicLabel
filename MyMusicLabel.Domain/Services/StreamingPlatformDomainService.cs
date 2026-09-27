@@ -1,7 +1,7 @@
+using MyMusicLabel.Domain.Entities;
 using MyMusicLabel.Domain.Repos;
-using MyMusicLabel.Domain.Services;
 
-namespace MyMusicLabel.Domain.Entities;
+namespace MyMusicLabel.Domain.Services;
 
 public class StreamingPlatformDomainService(
     IStreamingPlatformAppService service, 
