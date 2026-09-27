@@ -10,9 +10,7 @@ namespace MyMusicLabel.Domain.Services;
 public interface IStreamingPlatformAppService
 {
     void Publish(Release release, Guid artistId, DateOnly date);
-    bool AnyPublicationsPlannedAfter(DateOnly date, Guid artistId);
     IEnumerable<int> GetTrackListeningsInPeriod(Guid trackId, DateOnly startDate, DateOnly endDate);
     IEnumerable<decimal> GetTrackPaymentsInPeriod(Guid trackId, DateOnly startDate, DateOnly endDate);
-    bool IsReleasePublished(Guid releaseId);
     void Revoke(Guid releaseId, Guid artistId);
 }
