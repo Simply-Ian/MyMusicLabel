@@ -11,17 +11,41 @@ namespace MyMusicLabel.Domain.Entities;
  * один - для публикации.
  * Однако нам лень, поэтому постоянный контракт сделаем nullable.
  */
-public class Artist (Guid id, string name, PersistentContract? contract = null) : BaseEntity(id)
+public class Artist (Guid id, string name) : BaseEntity(id)
 {
-    private PersistentContract? _contract = contract;
+    private PersistentContract? _contract;
     
     public string Name { get; set; } = name;
     
     private readonly List<Release> _releases = [];
     public IReadOnlyList<Release> Releases => _releases;
-
+    
+    /// <summary>
+    /// Подписывает артиста на лейбл с тем условием, что за опубликованные релизы артист будет получать процентные
+    /// отчисления
+    /// </summary>
+    /// <param name="charge">Ставка процентных отчислений в диапазоне 0.0 - 1.0</param>
+    /// <param name="signDate">Дата подписания контракта</param>
+    /// <param name="plannedReleasesCount">Количество релизов, которые артист должен выпустить по условиям контракта</param>
+    public void SignPerformerForCharge(decimal charge, DateOnly signDate, uint plannedReleasesCount)
+        => _contract = new PersistentContract(new ChargedContract(charge), signDate, plannedReleasesCount);
+    
+    /// <summary>
+    /// Подписывает артиста на лейбл с тем условием, что за первую публикацию нового релиза артист будет получать
+    /// фиксированную сумму
+    /// </summary>
+    /// <param name="price">Сумма выплат за первую публикацию нового релиза, р</param>
+    /// <param name="signDate">Дата подписания контракта</param>
+    /// <param name="plannedReleasesCount">Количество релизов, которые артист должен выпустить по условиям контракта</param>
+    public void SignPerformerForFixedSum(decimal price, DateOnly signDate, uint plannedReleasesCount)
+        => _contract = new PersistentContract(new FixedSumContract(price), signDate, plannedReleasesCount);
+    
+    /// <summary>
+    /// Разрывает контракт с артистом в указанную дату
+    /// </summary>
     public void Drop(DateOnly date) => _contract = _contract?.Break(date);
     public bool IsSignedToDate(DateOnly date) => _contract?.IsActiveToDate(date) ?? false;
+    
     public bool HasRelease(Guid releaseId) => _releases.Any(r => r.Id == releaseId);
 
     /// <summary>
@@ -48,7 +72,7 @@ public class Artist (Guid id, string name, PersistentContract? contract = null) 
         _releases.Remove(release);
     }
 
-    public void MarkNewPublishedRelease(Guid releaseId, Guid platformId, DateOnly date)
+    internal void MarkNewPublishedRelease(Guid releaseId, Guid platformId, DateOnly date)
     {
         if (_contract is null) 
             throw new InvalidOperationException($"Cannot publish a release performed by an unsigned artist");
@@ -74,7 +98,7 @@ public class Artist (Guid id, string name, PersistentContract? contract = null) 
         release.RemoveTrack(trackId);
     }
     
-    public decimal CalculatePayments(decimal totalIncomeForRelease, DateOnly startDate, DateOnly endDate)
+    internal decimal CalculatePayments(decimal totalIncomeForRelease, DateOnly startDate, DateOnly endDate)
         => _contract?.CalculatePayments(totalIncomeForRelease, startDate, endDate) 
            ?? throw new InvalidOperationException("The artist is not signed and thus can not receive any royalties");
 }

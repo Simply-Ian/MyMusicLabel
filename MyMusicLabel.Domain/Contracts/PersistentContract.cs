@@ -1,6 +1,6 @@
 namespace MyMusicLabel.Domain.Contracts;
 
-public record PersistentContract
+internal record PersistentContract
 {
     private IContractImplementation Imp;
     public DateOnly SignDate { get; }

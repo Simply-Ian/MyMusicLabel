@@ -5,6 +5,8 @@ namespace MyMusicLabel.Domain.Entities;
 // Track - агрегат, а не сущность в составе Release, потому что может входить в разные релизы
 public class Track (Guid id) : BaseEntity(id)
 {
+    private record AuthorInfo (OneTimeContract Contract, Guid ArtistId);
+    
     public string Title { get; set; } = "";
     public bool HasLyrics { get; private set; }
     public bool HasMusic { get; private set; }
@@ -17,7 +19,7 @@ public class Track (Guid id) : BaseEntity(id)
     public Guid? LyricistId => LyricsAuthorInfo?.ArtistId;
     public Guid? PerformerId { get; private set; }
     
-    public void AddMusic(Guid authorId, OneTimeContract contract, TimeSpan duration)
+    internal void AddMusic(Guid authorId, OneTimeContract contract, TimeSpan duration)
     {
         if (HasMusic) throw new InvalidOperationException("Track already has music");
         MusicAuthorInfo = new AuthorInfo(contract, authorId);
@@ -25,7 +27,7 @@ public class Track (Guid id) : BaseEntity(id)
         HasMusic = true;
     }
     
-    public void AddLyrics(Guid authorId, OneTimeContract contract)
+    internal void AddLyrics(Guid authorId, OneTimeContract contract)
     {
         if (HasLyrics) throw new InvalidOperationException("Track already has lyrics");
         LyricsAuthorInfo = new AuthorInfo(contract, authorId);
@@ -46,5 +48,3 @@ public class Track (Guid id) : BaseEntity(id)
         => MusicAuthorInfo?.Contract.CalculatePayment(income, startDate, endDate) 
            ?? throw new InvalidOperationException("Track doesn't have any music yet");
 }
-
-public record AuthorInfo (OneTimeContract Contract, Guid ArtistId);

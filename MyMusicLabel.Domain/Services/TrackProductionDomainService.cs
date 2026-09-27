@@ -25,7 +25,7 @@ public class TrackProductionDomainService(ITrackRepository trackRepo)
     }
 }
 
-public delegate void TrackAction(Track track, OneTimeContract contract);
+internal delegate void TrackAction(Track track, OneTimeContract contract);
 
 /// <summary>
 /// Создает и настраивает объект TrackProducer, который выполняет операции над треком.
@@ -50,8 +50,11 @@ public class ProducerBuilder(Track track, ITrackRepository trackRepo)
     }
 }
 
-public class TrackProducer(Track track, TrackAction action, ITrackRepository trackRepo)
+public class TrackProducer
 {
+    private Track _track;
+    private TrackAction _action;
+    private ITrackRepository _trackRepo;
     public void ForCharge(decimal charge, DateOnly date) => _applyProductionStep(new ChargedContract(charge), date);
     
     public void ForFixedSum(decimal price, DateOnly date) => _applyProductionStep(new FixedSumContract(price), date);
@@ -59,7 +62,14 @@ public class TrackProducer(Track track, TrackAction action, ITrackRepository tra
     private void _applyProductionStep(IContractImplementation contractImp, DateOnly date)
     {
         OneTimeContract contract = new(contractImp, date);
-        action(track, contract);
-        trackRepo.StoreTrack(track);
+        _action(_track, contract);
+        _trackRepo.StoreTrack(_track);
+    }
+
+    internal TrackProducer(Track track, TrackAction action, ITrackRepository trackRepo)
+    {
+        _track = track;
+        _action = action;
+        _trackRepo = trackRepo;
     }
 }

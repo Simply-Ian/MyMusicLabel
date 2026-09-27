@@ -1,6 +1,6 @@
 namespace MyMusicLabel.Domain.Contracts;
 
-public interface IContractImplementation
+internal interface IContractImplementation
 {
     IReadOnlyList<DateOnly> OccurenceDates { get; }
     

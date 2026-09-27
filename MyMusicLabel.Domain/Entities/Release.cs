@@ -43,14 +43,14 @@ public class Release : BaseEntity
     
     public DateOnly? PublicationDate { get; private set; }
 
-    public void MarkPublished(Guid platformId, DateOnly publicationDate)
+    internal void MarkPublished(Guid platformId, DateOnly publicationDate)
     {
         if (PlatformsWherePublished.Contains(platformId)) 
             throw new InvalidOperationException($"Release is already published at platform with this Id: {platformId}");
         _platformsWherePublished.Add(platformId);
         PublicationDate = publicationDate;
     }
-    public void MarkRevoked(Guid platformId)
+    internal void MarkRevoked(Guid platformId)
     {
         if (!PlatformsWherePublished.Contains(platformId))
             throw new InvalidOperationException("Cannot revoke the release which is not published on the specified " +

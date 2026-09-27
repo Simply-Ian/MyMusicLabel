@@ -1,6 +1,6 @@
 namespace MyMusicLabel.Domain.Contracts;
 
-public record FixedSumContract(decimal Price) : IContractImplementation
+internal record FixedSumContract(decimal Price) : IContractImplementation
 {
     private readonly List<DateOnly> _occurenceDates = [];
     public IReadOnlyList<DateOnly> OccurenceDates => _occurenceDates;
