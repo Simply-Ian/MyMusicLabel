@@ -1,4 +1,3 @@
-using System.Globalization;
 using MyMusicLabel.Domain.Entities;
 using MyMusicLabel.Services;
 
@@ -27,31 +26,10 @@ internal class ReleaseReportParser(IArtistLookup artistLookup)
         if (releaseNumber > artist.Releases.Count)
             return $"У артиста {artist.Name} нет релиза с номером {releaseNumber}";
 
-        var culture = CultureInfo.GetCultureInfo("ru-RU");
-        if (!TryParseDate(args[4], culture, out var startDate))
-            return $"Не удалось прочитать дату \"{args[4]}\". Укажите дату в формате дд.ММ.гггг";
-
-        if (!TryParseDate(args[5], culture, out var endDate))
-            return $"Не удалось прочитать дату \"{args[5]}\". Укажите дату в формате дд.ММ.гггг";
-
-        if (startDate > endDate)
-            return "Дата начала периода не может быть позже даты окончания";
+        var error = DateParsing.TryParsePeriod(args, 4, 5, out var startDate, out var endDate);
+        if (error is not null) return error;
 
         report = new ReleaseReport(artist.Releases[(int)releaseNumber - 1], artist, startDate, endDate);
         return null;
-    }
-
-    private static bool TryParseDate(string arg, CultureInfo culture, out DateOnly date)
-    {
-        try
-        {
-            date = DateOnly.Parse(arg, culture);
-            return true;
-        }
-        catch (FormatException)
-        {
-            date = default;
-            return false;
-        }
     }
 }

@@ -22,17 +22,15 @@ public class WalletDomainService
         => ComputeTotalIncomeByPeriod(startDate, endDate) 
            - ComputeTotalRoyaltyByPeriod(startDate, endDate);
     public decimal ComputeTotalIncomeByPeriod(DateOnly startDate, DateOnly endDate, Guid? platformId = null)
-        => artistRepo.GetAllArtists()
+        => trackRepo.GetAllTracks()
             .Sum(
-                artist => artist.Releases.Sum(
-                    release => platformId == null? 
-                        _allPlatforms.Sum(
-                            platform => platform.GetTrackPaymentsInPeriod(release.Id, startDate, endDate).Sum()
-                        )
-                        : _getPlatform(platformId.Value)
-                            ?.GetTrackPaymentsInPeriod(release.Id, startDate, endDate).Sum() ?? 0
-                )
-            );
+                track => platformId == null? 
+                    _allPlatforms.Sum(
+                        platform => platform.GetTrackPaymentsInPeriod(track.Id, startDate, endDate).Sum()
+                    )
+                    : _getPlatform(platformId.Value)
+                        ?.GetTrackPaymentsInPeriod(track.Id, startDate, endDate).Sum() ?? 0
+                );
     
     public decimal ComputeTotalRoyaltyByPeriod(DateOnly startDate, DateOnly endDate)
         => artistRepo.GetAllArtists()
