@@ -32,10 +32,19 @@ public class Release(Guid id, Style style, string title, List<Guid> trackIds) : 
 
     public void AddTrack(Guid trackId)
     {
+        if (IsPublishedAnywhere)
+            throw new InvalidOperationException("Release is already published at some platform and thus track list " +
+                                                "cannot be edited");
         if (!trackIds.Contains(trackId)) trackIds.Add(trackId);
     }
 
-    public void RemoveTrack(Guid trackId) => trackIds.Remove(trackId);
+    public void RemoveTrack(Guid trackId)
+    {
+        if (IsPublishedAnywhere)
+            throw new InvalidOperationException("Release is already published at some platform and thus track list " +
+                                                "cannot be edited");
+        trackIds.Remove(trackId);
+    }
 
     private readonly Dictionary<Guid, DateOnly> _platformsWherePublished = [];
     /// <summary>
