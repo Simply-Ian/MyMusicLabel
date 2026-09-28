@@ -95,6 +95,5 @@ public class Artist (Guid id, string name) : BaseEntity(id)
     }
     
     internal decimal CalculatePayments(decimal totalIncomeForRelease, DateOnly startDate, DateOnly endDate)
-        => _contract?.CalculatePayments(totalIncomeForRelease, startDate, endDate) 
-           ?? throw new InvalidOperationException("The artist is not signed and thus can not receive any royalties");
+        => _contract?.CalculatePayments(totalIncomeForRelease, startDate, endDate) ?? 0;
 }

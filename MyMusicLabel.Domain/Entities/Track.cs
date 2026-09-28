@@ -45,6 +45,5 @@ public class Track (Guid id) : BaseEntity(id)
         => LyricsAuthorInfo?.Contract.CalculatePayment(income, startDate, endDate) ?? 0;
     
     public decimal CalculateComposerRoyalty(decimal income, DateOnly startDate, DateOnly endDate) 
-        => MusicAuthorInfo?.Contract.CalculatePayment(income, startDate, endDate) 
-           ?? throw new InvalidOperationException("Track doesn't have any music yet");
+        => MusicAuthorInfo?.Contract.CalculatePayment(income, startDate, endDate) ?? 0;
 }

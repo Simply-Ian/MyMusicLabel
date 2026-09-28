@@ -88,15 +88,21 @@ public class WalletDomainService
         var performerIncome = artist.Releases.Sum(release => ComputeIncomeForRelease(release, startDate, endDate));
         var performerRoyalty = artist.CalculatePayments(performerIncome, startDate, endDate);
 
-        decimal lyricistRoyalty = 0, composerRoyalty = 0;
-        trackRepo.GetTracksBySelector(track => track.LyricistId == artistId)
-            .ForEach(track =>
+        decimal lyricistRoyalty = trackRepo.GetTracksBySelector(track => track.LyricistId == artistId)
+            .Sum(track =>
             {
                 var totalIncomeForTrack = _allPlatforms.Sum(platform =>
                     platform.GetTrackPaymentsInPeriod(track.Id, startDate, endDate).Sum()
                 );
-                lyricistRoyalty += track.CalculateLyricistRoyalty(totalIncomeForTrack, startDate, endDate);
-                composerRoyalty += track.CalculateComposerRoyalty(totalIncomeForTrack, startDate, endDate);
+                return track.CalculateLyricistRoyalty(totalIncomeForTrack, startDate, endDate);
+            });
+        decimal composerRoyalty = trackRepo.GetTracksBySelector(track => track.ComposerId == artistId)
+            .Sum(track =>
+            {
+                var totalIncomeForTrack = _allPlatforms.Sum(platform =>
+                    platform.GetTrackPaymentsInPeriod(track.Id, startDate, endDate).Sum()
+                );
+                return track.CalculateComposerRoyalty(totalIncomeForTrack, startDate, endDate);
             });
 
         return composerRoyalty + lyricistRoyalty + performerRoyalty;
