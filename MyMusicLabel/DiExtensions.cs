@@ -1,7 +1,10 @@
+using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 using MyMusicLabel.Commands;
+using MyMusicLabel.Commands.Validators;
 using MyMusicLabel.Domain.Services;
 using MyMusicLabel.Infrastructure.Services;
+using MyMusicLabel.Services;
 
 namespace MyMusicLabel;
 
@@ -23,5 +26,6 @@ public static class DiExtensions
     }
     
     public static IServiceCollection RegisterAppServices(this IServiceCollection services) => 
-        services.AddSingleton<AppRunner>();
+        services.AddSingleton<AppRunner>()
+            .AddSingleton<IArtistResolver, DictionaryArtistResolver>();
 }

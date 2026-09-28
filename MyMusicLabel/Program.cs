@@ -1,6 +1,8 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using FluentValidation;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using MyMusicLabel;
+using MyMusicLabel.Commands.Validators;
 using MyMusicLabel.Domain;
 using MyMusicLabel.Infrastructure;
 
@@ -18,7 +20,8 @@ builder.Services
     .RegisterAppServices()
     .RegisterPlatformDomainServices(aliases)
     .RegisterDomainServices()
-    .RegisterCommands();
+    .RegisterCommands()
+    .AddTransient<IValidator<CreateArtistInput>, CreateArtistValidator>(); // TODO: унести в отдельный метод для валидаторов
 
 using var app = builder.Build();
 app.Start();
