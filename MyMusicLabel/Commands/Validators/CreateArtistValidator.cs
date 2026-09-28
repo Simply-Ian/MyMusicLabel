@@ -3,7 +3,7 @@ using MyMusicLabel.Services;
 
 namespace MyMusicLabel.Commands.Validators;
 
-internal sealed record CreateArtistInput(string Alias, string Name);
+internal record CreateArtistInput(string Alias, string Name);
 
 internal class CreateArtistValidator : AbstractValidator<CreateArtistInput>
 {
