@@ -25,7 +25,8 @@ public static class DiExtensions
             ).ConstructorArguments.First().Value?.ToString() ?? "";
     }
     
-    public static IServiceCollection RegisterAppServices(this IServiceCollection services) => 
+    public static IServiceCollection RegisterAppServices(this IServiceCollection services, Dictionary<string, Guid> platformAliases) => 
         services.AddSingleton<AppRunner>()
-            .AddSingleton<IArtistResolver, DictionaryArtistResolver>();
+            .AddSingleton<IArtistResolver, DictionaryArtistResolver>()
+            .AddSingleton<IPlatformResolver>(new DictionaryPlatformResolver(platformAliases));
 }

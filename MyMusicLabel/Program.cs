@@ -17,7 +17,7 @@ var aliases = new Dictionary<string, Guid>(StringComparer.OrdinalIgnoreCase)
 builder.Services
     .RegisterRepositories()
     .RegisterPlatformAdapters(aliases)
-    .RegisterAppServices()
+    .RegisterAppServices(aliases)
     .RegisterPlatformDomainServices(aliases)
     .RegisterDomainServices()
     .RegisterCommands()
