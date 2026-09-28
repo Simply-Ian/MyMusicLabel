@@ -72,10 +72,9 @@ public class Artist (Guid id, string name) : BaseEntity(id)
             throw new InvalidOperationException($"Cannot publish a release performed by an unsigned artist");
         var release = _releases.First(r => r.Id == releaseId) 
                       ?? throw new ArgumentException("The artist does not perform this release");
-        /* Might throw an exception if is already published at the platform and thus should be placed before
-        _contract?.AddNewRelease() */
+        bool isFirstPublication = !release.IsPublishedAnywhere;
         release.MarkPublished(platformId, date);
-        if (!release.IsPublishedAnywhere) _contract?.AddNewRelease(date);
+        if (isFirstPublication) _contract?.AddNewRelease(date);
     }
 
     public void AddTrackToRelease(Guid releaseId, Track track)

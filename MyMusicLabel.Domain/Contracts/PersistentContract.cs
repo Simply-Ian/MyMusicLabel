@@ -17,7 +17,11 @@ internal record PersistentContract
 
     public void AddNewRelease(DateOnly releaseDate)
     {
-        if (IsActiveToDate(releaseDate)) _releaseDates.Add(releaseDate);
+        if (IsActiveToDate(releaseDate))
+        {
+            _releaseDates.Add(releaseDate);
+            Imp.AddOccurenceOfPaymentConditionDate(releaseDate);
+        }
         else throw new BrokenContractException();
     }
 
@@ -39,8 +43,6 @@ internal record PersistentContract
     /// <returns>Общий объем выплат артисту на основе полученных сумм.</returns>
     public decimal CalculatePayments(decimal totalIncome, DateOnly startDate, DateOnly endDate)
         => Imp.CalculatePayments(totalIncome, startDate, endDate);
-
-    public void AddOccurenceOfPaymentConditionDate(DateOnly date) => Imp.AddOccurenceOfPaymentConditionDate(date);
 
     public PersistentContract Break(DateOnly date)
     {
