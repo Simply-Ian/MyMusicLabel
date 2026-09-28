@@ -1,3 +1,4 @@
+using MyMusicLabel.Domain.Repos;
 using MyMusicLabel.Services;
 
 namespace MyMusicLabel.Commands;
@@ -5,7 +6,9 @@ namespace MyMusicLabel.Commands;
 [CommandName("artist")]
 internal class ShowArtistCommand(
     IArtistLookup artistLookup,
-    IPlatformResolver platformResolver
+    IPlatformResolver platformResolver,
+    ITrackResolver trackResolver,
+    ITrackRepository trackRepo
 ) : ICommand
 {
     public void Invoke(string[] args, CommandContext context)
@@ -42,16 +45,25 @@ internal class ShowArtistCommand(
         {
             var release = artist.Releases[index];
             Console.WriteLine($"{index + 1}. {release.Title} ({release.Style})");
-            if (!release.IsPublishedAnywhere)
+            if (release.IsPublishedAnywhere)
+            {
+                foreach (var platform in release.PlatformsWherePublished
+                             .OrderBy(pair => platformResolver.AliasesById.GetValueOrDefault(pair.Key, pair.Key.ToString())))
+                {
+                    Console.WriteLine($"\t{platformResolver.Resolve(platform.Key)}: {FormatDate(platform.Value)}");
+                }
+            }
+            else
             {
                 Console.WriteLine("\tне опубликован");
-                continue;
             }
 
-            foreach (var platform in release.PlatformsWherePublished
-                         .OrderBy(pair => platformResolver.AliasesById.GetValueOrDefault(pair.Key, pair.Key.ToString())))
+            if (!release.TrackIds.Any()) continue;
+            Console.WriteLine("\tTracklist:");
+            foreach (var track in trackRepo.GetTrackList(release.TrackIds))
             {
-                Console.WriteLine($"\t{platformResolver.Resolve(platform.Key)}: {FormatDate(platform.Value)}");
+                var trackAlias = trackResolver.AliasesById.GetValueOrDefault(track.Id, track.Id.ToString());
+                Console.WriteLine($"\t\t{trackAlias} {track.Title}");
             }
         }
     }
