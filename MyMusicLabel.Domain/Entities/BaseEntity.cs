@@ -1,6 +1,6 @@
 namespace MyMusicLabel.Domain.Entities;
 
-public class BaseEntity (Guid id) : IEquatable<BaseEntity>
+public abstract class BaseEntity (Guid id) : IEquatable<BaseEntity>
 {
     public Guid Id => id;
     
