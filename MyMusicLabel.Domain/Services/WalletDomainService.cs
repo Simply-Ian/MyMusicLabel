@@ -51,8 +51,8 @@ public class WalletDomainService
         DateOnly endDate
     )
     {
-        if (!(startDate <= release.PublicationDate && release.PublicationDate <= endDate)) return 0;
-        
+        /* TODO: трек может быть включен в несколько релизов, и интерфейс стриминговой платформы должен, по-хорошему,
+        учитывать это. Исправить так же в ComputeIncomeForRelease */
         var incomesPerTrack = new Dictionary<Guid, decimal>(release.TrackIds.Select(
             id => new KeyValuePair<Guid, decimal>(id, 
                 _allPlatforms.Sum(
@@ -74,6 +74,14 @@ public class WalletDomainService
             tracks.Sum(track => track.CalculateComposerRoyalty(incomesPerTrack[track.Id], startDate, endDate));
 
         return performerRoyalties + composerRoyalties + lyricistRoyalties;
+    }
+    
+    public decimal ComputeIncomeForRelease(Release release, DateOnly startDate, DateOnly endDate)
+    {
+        return release.TrackIds.Select(id => 
+            _allPlatforms.Sum(platform => platform.GetTrackPaymentsInPeriod(id, startDate, endDate).Sum()
+            )
+        ).Sum();
     }
 
     public decimal ComputeRoyaltyToArtist(Guid artistId, DateOnly startDate, DateOnly endDate)
@@ -103,13 +111,4 @@ public class WalletDomainService
                     .Where(release => release.Style == style)
                     .Sum(release => ComputeIncomeForRelease(release, startDate, endDate))
             );
-    
-    public decimal ComputeIncomeForRelease(Release release, DateOnly startDate, DateOnly endDate)
-    {
-        if (!(startDate <= release.PublicationDate && release.PublicationDate <= endDate)) return 0;
-        return release.TrackIds.Select(id => 
-            _allPlatforms.Sum(platform => platform.GetTrackPaymentsInPeriod(id, startDate, endDate).Sum()
-            )
-        ).Sum();
-    }
 }
