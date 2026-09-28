@@ -5,7 +5,7 @@ using MyMusicLabel.Services;
 namespace MyMusicLabel.Commands;
 
 [CommandName("artistaddrelease")]
-internal class AddReleaseCommand(IArtistResolver artistResolver, IArtistRepository artistRepo) : ICommand
+internal class AddReleaseCommand(IArtistLookup artistLookup, IArtistRepository artistRepo) : ICommand
 {
     public void Invoke(string[] args, CommandContext context)
     {
@@ -16,12 +16,7 @@ internal class AddReleaseCommand(IArtistResolver artistResolver, IArtistReposito
         }
 
         var alias = args[1];
-        Artist artist;
-        try
-        {
-            artist = artistRepo.GetArtist(artistResolver.Resolve(alias));
-        }
-        catch (KeyNotFoundException)
+        if (!artistLookup.TryGetArtist(alias, out var artist))
         {
             Console.WriteLine("Артист с указанным коротким именем не найден");
             return;

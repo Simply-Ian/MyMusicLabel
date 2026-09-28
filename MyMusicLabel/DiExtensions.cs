@@ -29,5 +29,6 @@ public static class DiExtensions
         services.AddSingleton<AppRunner>()
             .AddSingleton<IArtistResolver, DictionaryArtistResolver>()
             .AddSingleton<ITrackResolver, DictionaryTrackResolver>()
+            .AddSingleton<IArtistLookup, ArtistLookup>()
             .AddSingleton<IPlatformResolver>(new DictionaryPlatformResolver(platformAliases));
 }

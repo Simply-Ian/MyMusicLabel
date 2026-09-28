@@ -1,13 +1,10 @@
-using MyMusicLabel.Domain.Entities;
-using MyMusicLabel.Domain.Repos;
 using MyMusicLabel.Services;
 
 namespace MyMusicLabel.Commands;
 
 [CommandName("artist")]
 internal class ShowArtistCommand(
-    IArtistResolver artistResolver,
-    IArtistRepository artistRepo,
+    IArtistLookup artistLookup,
     IPlatformResolver platformResolver
 ) : ICommand
 {
@@ -20,12 +17,7 @@ internal class ShowArtistCommand(
         }
 
         var alias = args[1];
-        Artist artist;
-        try
-        {
-            artist = artistRepo.GetArtist(artistResolver.Resolve(alias));
-        }
-        catch (KeyNotFoundException)
+        if (!artistLookup.TryGetArtist(alias, out var artist))
         {
             Console.WriteLine("Артист с указанным коротким именем не найден");
             return;
