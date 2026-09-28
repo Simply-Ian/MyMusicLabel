@@ -28,5 +28,6 @@ public static class DiExtensions
     public static IServiceCollection RegisterAppServices(this IServiceCollection services, Dictionary<string, Guid> platformAliases) => 
         services.AddSingleton<AppRunner>()
             .AddSingleton<IArtistResolver, DictionaryArtistResolver>()
+            .AddSingleton<ITrackResolver, DictionaryTrackResolver>()
             .AddSingleton<IPlatformResolver>(new DictionaryPlatformResolver(platformAliases));
 }
