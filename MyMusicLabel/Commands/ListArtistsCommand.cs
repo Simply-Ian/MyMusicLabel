@@ -1,4 +1,5 @@
 using MyMusicLabel.Domain.Repos;
+using MyMusicLabel.Output;
 using MyMusicLabel.Services;
 
 namespace MyMusicLabel.Commands;
@@ -37,14 +38,10 @@ internal class ListArtistsCommand(IArtistRepository artistRepo, IArtistResolver 
         {
             "Короткое имя", "Имя", $"Подписан на {context.Today:dd.MM.yyyy}", "Дата подписания", "Дата расторжения"
         };
-        var widths = header.Select((title, index) => Math.Max(title.Length, rows.Max(row => row[index].Length))).ToArray();
-        PrintRow(header, widths);
-        foreach (var row in rows) PrintRow(row, widths);
+        TablePrinter.Print(header, rows);
     }
 
     private static string FormatDate(DateOnly? date) => date is null ? "-" : $"{date.Value:dd.MM.yyyy}";
-    private static void PrintRow(IReadOnlyList<string> cells, IReadOnlyList<int> widths) =>
-        Console.WriteLine(string.Join("  ", cells.Select((cell, index) => cell.PadRight(widths[index]))).TrimEnd());
 
     public string Help => "Вывести список всех известных артистов: artist list";
 }

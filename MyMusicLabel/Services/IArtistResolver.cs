@@ -8,4 +8,6 @@ public interface IArtistResolver
     Guid Resolve(string alias);
     
     IReadOnlyDictionary<string, Guid> Aliases { get; }
+
+    IReadOnlyDictionary<Guid, string> AliasesById { get; }
 }
