@@ -27,3 +27,4 @@ The following code conventions are applied to the project:
   * Group name + command name if the command represents an action over a certain instance of an entity
   * Group name + "list" if the command is purposed to print list of all the available entities of a certain type
   Group names usually correspond to entities they are performed over
+* Agents are not allowed to modify AGENTS.md, UseCases.md, and domain description .md file
