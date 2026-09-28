@@ -18,7 +18,7 @@ internal class TrackProductionParser(
     {
         public static string? TryParse(string typeArg, string valueArg, out ContractTerms terms)
         {
-            terms = default;
+            terms = null!;
             var isCharge = typeArg.Equals("charge", StringComparison.OrdinalIgnoreCase);
             if (!isCharge && !typeArg.Equals("fixed", StringComparison.OrdinalIgnoreCase))
                 return "Неизвестный тип контракта. Доступны: charge, fixed";
@@ -33,46 +33,61 @@ internal class TrackProductionParser(
         }
     }
 
-    public string? TryParseRequest(IReadOnlyList<string> args, DateOnly date, out ProductionRequest request)
+    public string? TryResolve(string trackAlias, string artistAlias, out Track track, out Artist artist)
     {
-        request = null!;
-        if (!args[^3].Equals("for", StringComparison.OrdinalIgnoreCase))
-            return "Укажите условия оплаты: for charge <процент> либо for fixed <сумма>";
-
-        Track track;
+        track = null!;
+        artist = null!;
         try
         {
-            track = trackRepo.GetTrack(trackResolver.Resolve(args[1]));
+            track = trackRepo.GetTrack(trackResolver.Resolve(trackAlias));
         }
         catch (KeyNotFoundException)
         {
             return "Трек с указанным коротким именем не найден";
         }
 
-        if (!artistLookup.TryGetArtist(args[3], out var author))
+        if (!artistLookup.TryGetArtist(artistAlias, out artist))
             return "Артист с указанным коротким именем не найден";
 
-        var error = ContractTerms.TryParse(args[^2], args[^1], out var terms);
+        return null;
+    }
+
+    public string? TryParseRequest(IReadOnlyList<string> args, DateOnly date, out ProductionRequest request)
+    {
+        request = null!;
+        if (!args[^3].Equals("for", StringComparison.OrdinalIgnoreCase))
+            return "Укажите условия оплаты: for charge <процент> либо for fixed <сумма>";
+
+        var error = TryResolve(args[1], args[3], out var track, out var author);
+        if (error is not null) return error;
+
+        error = ContractTerms.TryParse(args[^2], args[^1], out var terms);
         if (error is not null) return error;
 
         request = new ProductionRequest(track, author, terms, date);
         return null;
     }
 
-    public string? TryProduce(string subject, ProductionRequest request, Func<TrackProducer> beginProduction)
+    public string? TryRun(string subject, Action action)
     {
         try
+        {
+            action();
+        }
+        catch (InvalidOperationException exc)
+        {
+            return $"Невозможно {subject}: {exc.Message}";
+        }
+        return null;
+    }
+
+    public string? TryProduce(string subject, ProductionRequest request, Func<TrackProducer> beginProduction)
+        => TryRun($"добавить {subject}", () =>
         {
             var producer = beginProduction();
             if (request.Terms.IsCharge) producer.ForCharge(request.Terms.Value / 100, request.Date);
             else producer.ForFixedSum(request.Terms.Value, request.Date);
-        }
-        catch (InvalidOperationException exc)
-        {
-            return $"Невозможно добавить {subject}: {exc.Message}";
-        }
-        return null;
-    }
+        });
 
     public string DescribeTerms(ContractTerms terms, string subject)
         => terms.IsCharge ? $"отчисления {terms.Value}% от дохода" : $"выплата {terms.Value} руб. единоразово";
