@@ -35,14 +35,14 @@ internal class SignArtistCommand(IArtistResolver artistResolver, IArtistReposito
                 decimal chargePercents = decimal.Parse(args[4]);
                 artist.SignPerformerForCharge(chargePercents / 100, context.Today, releasesNum);
                 Console.WriteLine($"Заключен контракт на выпуск {releasesNum} релизов с исполнителем {artist.Name}. " +
-                                  $"Величина отчислений: {chargePercents}% от доходов.");
+                                  $"Величина отчислений: {chargePercents}% от доходов. Дата подписания: {{context.Today}}");
             }
             else if (contractType == "fixed")
             {
                 decimal price = decimal.Parse(args[4]);
                 artist.SignPerformerForFixedSum(price, context.Today, releasesNum);
                 Console.WriteLine($"Заключен контракт на выпуск {releasesNum} релизов с исполнителем {artist.Name}. " +
-                                  $"Величина отчислений: {price} руб. за первую публикацию релиза.");
+                                  $"Величина отчислений: {price} руб. за первую публикацию релиза. Дата подписания: {context.Today}");
             }
             else
             {
