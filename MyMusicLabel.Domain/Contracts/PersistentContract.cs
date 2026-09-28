@@ -4,7 +4,7 @@ internal record PersistentContract
 {
     private IContractImplementation Imp;
     public DateOnly SignDate { get; }
-    private DateOnly? BreakDate { get; init; }
+    public DateOnly? BreakDate { get; private init; }
     public bool IsActiveToDate(DateOnly date) => 
         SignDate <= date 
         && date < (BreakDate ?? DateOnly.MaxValue) 

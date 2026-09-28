@@ -6,4 +6,6 @@ public interface IArtistResolver
     void Occupy(string alias, Guid artistId);
     
     Guid Resolve(string alias);
+    
+    IReadOnlyDictionary<string, Guid> Aliases { get; }
 }

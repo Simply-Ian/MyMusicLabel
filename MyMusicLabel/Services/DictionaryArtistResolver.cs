@@ -6,4 +6,5 @@ public class DictionaryArtistResolver : IArtistResolver
     public bool IsOccupied(string alias) => _artistAliases.ContainsKey(alias);
     public void Occupy(string alias, Guid artistId) => _artistAliases[alias] = artistId;
     public Guid Resolve(string alias) => _artistAliases[alias];
+    public IReadOnlyDictionary<string, Guid> Aliases => _artistAliases;
 }

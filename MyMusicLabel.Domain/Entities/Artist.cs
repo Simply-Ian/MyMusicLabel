@@ -2,15 +2,6 @@ using MyMusicLabel.Domain.Contracts;
 
 namespace MyMusicLabel.Domain.Entities;
 
-/*
- * Артист - это Entity в любом случае
- * Артист может быть автором музыки и текстов для разных треков => получать выплаты по одноразовым контрактам
- * Артист может быть исполнителем разных релизов (и, соответственно, треков) => получать выплаты по постоянному контракту
- * Соответственно, если автор музыки/текста для нас - только Id и имя, а исполнитель имеет разные релизы + постоянный
- * контракт, но при этом ИРЛ это одно и то же лицо, нам надо вводить 2 Bounded Context-а: один для записи треков и
- * один - для публикации.
- * Однако нам лень, поэтому постоянный контракт сделаем nullable.
- */
 public class Artist (Guid id, string name) : BaseEntity(id)
 {
     private PersistentContract? _contract;
@@ -19,6 +10,9 @@ public class Artist (Guid id, string name) : BaseEntity(id)
     
     private readonly List<Release> _releases = [];
     public IReadOnlyList<Release> Releases => _releases;
+
+    public DateOnly? SignDate => _contract?.SignDate;
+    public DateOnly? DropDate => _contract?.BreakDate;
     
     /// <summary>
     /// Подписывает артиста на лейбл с тем условием, что за опубликованные релизы артист будет получать процентные
