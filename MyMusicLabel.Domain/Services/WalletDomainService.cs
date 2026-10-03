@@ -22,17 +22,15 @@ public class WalletDomainService
         => ComputeTotalIncomeByPeriod(startDate, endDate) 
            - ComputeTotalRoyaltyByPeriod(startDate, endDate);
     public decimal ComputeTotalIncomeByPeriod(DateOnly startDate, DateOnly endDate, Guid? platformId = null)
-        => artistRepo.GetAllArtists()
+        => trackRepo.GetAllTracks()
             .Sum(
-                artist => artist.Releases.Sum(
-                    release => platformId == null? 
-                        _allPlatforms.Sum(
-                            platform => platform.GetTrackPaymentsInPeriod(release.Id, startDate, endDate).Sum()
-                        )
-                        : _getPlatform(platformId.Value)
-                            ?.GetTrackPaymentsInPeriod(release.Id, startDate, endDate).Sum() ?? 0
-                )
-            );
+                track => platformId == null? 
+                    _allPlatforms.Sum(
+                        platform => platform.GetTrackPaymentsInPeriod(track.Id, startDate, endDate).Sum()
+                    )
+                    : _getPlatform(platformId.Value)
+                        ?.GetTrackPaymentsInPeriod(track.Id, startDate, endDate).Sum() ?? 0
+                );
     
     public decimal ComputeTotalRoyaltyByPeriod(DateOnly startDate, DateOnly endDate)
         => artistRepo.GetAllArtists()
@@ -51,8 +49,8 @@ public class WalletDomainService
         DateOnly endDate
     )
     {
-        if (!(startDate <= release.PublicationDate && release.PublicationDate <= endDate)) return 0;
-        
+        /* TODO: трек может быть включен в несколько релизов, и интерфейс стриминговой платформы должен, по-хорошему,
+        учитывать это. Исправить так же в ComputeIncomeForRelease */
         var incomesPerTrack = new Dictionary<Guid, decimal>(release.TrackIds.Select(
             id => new KeyValuePair<Guid, decimal>(id, 
                 _allPlatforms.Sum(
@@ -75,6 +73,14 @@ public class WalletDomainService
 
         return performerRoyalties + composerRoyalties + lyricistRoyalties;
     }
+    
+    public decimal ComputeIncomeForRelease(Release release, DateOnly startDate, DateOnly endDate)
+    {
+        return release.TrackIds.Select(id => 
+            _allPlatforms.Sum(platform => platform.GetTrackPaymentsInPeriod(id, startDate, endDate).Sum()
+            )
+        ).Sum();
+    }
 
     public decimal ComputeRoyaltyToArtist(Guid artistId, DateOnly startDate, DateOnly endDate)
     {
@@ -82,15 +88,21 @@ public class WalletDomainService
         var performerIncome = artist.Releases.Sum(release => ComputeIncomeForRelease(release, startDate, endDate));
         var performerRoyalty = artist.CalculatePayments(performerIncome, startDate, endDate);
 
-        decimal lyricistRoyalty = 0, composerRoyalty = 0;
-        trackRepo.GetTracksBySelector(track => track.LyricistId == artistId)
-            .ForEach(track =>
+        decimal lyricistRoyalty = trackRepo.GetTracksBySelector(track => track.LyricistId == artistId)
+            .Sum(track =>
             {
                 var totalIncomeForTrack = _allPlatforms.Sum(platform =>
                     platform.GetTrackPaymentsInPeriod(track.Id, startDate, endDate).Sum()
                 );
-                lyricistRoyalty += track.CalculateLyricistRoyalty(totalIncomeForTrack, startDate, endDate);
-                composerRoyalty += track.CalculateComposerRoyalty(totalIncomeForTrack, startDate, endDate);
+                return track.CalculateLyricistRoyalty(totalIncomeForTrack, startDate, endDate);
+            });
+        decimal composerRoyalty = trackRepo.GetTracksBySelector(track => track.ComposerId == artistId)
+            .Sum(track =>
+            {
+                var totalIncomeForTrack = _allPlatforms.Sum(platform =>
+                    platform.GetTrackPaymentsInPeriod(track.Id, startDate, endDate).Sum()
+                );
+                return track.CalculateComposerRoyalty(totalIncomeForTrack, startDate, endDate);
             });
 
         return composerRoyalty + lyricistRoyalty + performerRoyalty;
@@ -103,13 +115,4 @@ public class WalletDomainService
                     .Where(release => release.Style == style)
                     .Sum(release => ComputeIncomeForRelease(release, startDate, endDate))
             );
-    
-    public decimal ComputeIncomeForRelease(Release release, DateOnly startDate, DateOnly endDate)
-    {
-        if (!(startDate <= release.PublicationDate && release.PublicationDate <= endDate)) return 0;
-        return release.TrackIds.Select(id => 
-            _allPlatforms.Sum(platform => platform.GetTrackPaymentsInPeriod(id, startDate, endDate).Sum()
-            )
-        ).Sum();
-    }
 }

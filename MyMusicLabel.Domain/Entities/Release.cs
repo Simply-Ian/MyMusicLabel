@@ -32,26 +32,35 @@ public class Release(Guid id, Style style, string title, List<Guid> trackIds) : 
 
     public void AddTrack(Guid trackId)
     {
+        if (IsPublishedAnywhere)
+            throw new InvalidOperationException("Release is already published at some platform and thus track list " +
+                                                "cannot be edited");
         if (!trackIds.Contains(trackId)) trackIds.Add(trackId);
     }
 
-    public void RemoveTrack(Guid trackId) => trackIds.Remove(trackId);
+    public void RemoveTrack(Guid trackId)
+    {
+        if (IsPublishedAnywhere)
+            throw new InvalidOperationException("Release is already published at some platform and thus track list " +
+                                                "cannot be edited");
+        trackIds.Remove(trackId);
+    }
 
-    private readonly HashSet<Guid> _platformsWherePublished = [];
-    public IReadOnlySet<Guid> PlatformsWherePublished => _platformsWherePublished;
-    
-    public DateOnly? PublicationDate { get; private set; }
+    private readonly Dictionary<Guid, DateOnly> _platformsWherePublished = [];
+    /// <summary>
+    /// Хранит пары "Id платформы - дата публикации"
+    /// </summary>
+    public IReadOnlyDictionary<Guid, DateOnly> PlatformsWherePublished => _platformsWherePublished;
 
     internal void MarkPublished(Guid platformId, DateOnly publicationDate)
     {
-        if (PlatformsWherePublished.Contains(platformId)) 
+        if (PlatformsWherePublished.ContainsKey(platformId)) 
             throw new InvalidOperationException($"Release is already published at platform with this Id: {platformId}");
-        _platformsWherePublished.Add(platformId);
-        PublicationDate = publicationDate;
+        _platformsWherePublished.Add(platformId, publicationDate);
     }
     internal void MarkRevoked(Guid platformId)
     {
-        if (!PlatformsWherePublished.Contains(platformId))
+        if (!PlatformsWherePublished.ContainsKey(platformId))
             throw new InvalidOperationException("Cannot revoke the release which is not published on the specified " +
                                                 $"platform: {platformId}");
         _platformsWherePublished.Remove(platformId);

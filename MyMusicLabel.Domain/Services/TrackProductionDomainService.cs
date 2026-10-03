@@ -17,7 +17,7 @@ public class TrackProductionDomainService(ITrackRepository trackRepo)
         return new ProducerBuilder(track, trackRepo);
     }
 
-    public void RecordTrack(Guid trackId, Guid performerId, DateOnly date)
+    public void RecordTrack(Guid trackId, Guid performerId)
     {
         var track = trackRepo.GetTrack(trackId);
         track.MarkRecorded(performerId);

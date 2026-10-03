@@ -2,15 +2,6 @@ using MyMusicLabel.Domain.Contracts;
 
 namespace MyMusicLabel.Domain.Entities;
 
-/*
- * Артист - это Entity в любом случае
- * Артист может быть автором музыки и текстов для разных треков => получать выплаты по одноразовым контрактам
- * Артист может быть исполнителем разных релизов (и, соответственно, треков) => получать выплаты по постоянному контракту
- * Соответственно, если автор музыки/текста для нас - только Id и имя, а исполнитель имеет разные релизы + постоянный
- * контракт, но при этом ИРЛ это одно и то же лицо, нам надо вводить 2 Bounded Context-а: один для записи треков и
- * один - для публикации.
- * Однако нам лень, поэтому постоянный контракт сделаем nullable.
- */
 public class Artist (Guid id, string name) : BaseEntity(id)
 {
     private PersistentContract? _contract;
@@ -19,6 +10,9 @@ public class Artist (Guid id, string name) : BaseEntity(id)
     
     private readonly List<Release> _releases = [];
     public IReadOnlyList<Release> Releases => _releases;
+
+    public DateOnly? SignDate => _contract?.SignDate;
+    public DateOnly? DropDate => _contract?.BreakDate;
     
     /// <summary>
     /// Подписывает артиста на лейбл с тем условием, что за опубликованные релизы артист будет получать процентные
@@ -78,10 +72,9 @@ public class Artist (Guid id, string name) : BaseEntity(id)
             throw new InvalidOperationException($"Cannot publish a release performed by an unsigned artist");
         var release = _releases.First(r => r.Id == releaseId) 
                       ?? throw new ArgumentException("The artist does not perform this release");
-        /* Might throw an exception if is already published at the platform and thus should be placed before
-        _contract?.AddNewRelease() */
+        bool isFirstPublication = !release.IsPublishedAnywhere;
         release.MarkPublished(platformId, date);
-        if (!release.IsPublishedAnywhere) _contract?.AddNewRelease(date);
+        if (isFirstPublication) _contract?.AddNewRelease(date);
     }
 
     public void AddTrackToRelease(Guid releaseId, Track track)
@@ -101,6 +94,5 @@ public class Artist (Guid id, string name) : BaseEntity(id)
     }
     
     internal decimal CalculatePayments(decimal totalIncomeForRelease, DateOnly startDate, DateOnly endDate)
-        => _contract?.CalculatePayments(totalIncomeForRelease, startDate, endDate) 
-           ?? throw new InvalidOperationException("The artist is not signed and thus can not receive any royalties");
+        => _contract?.CalculatePayments(totalIncomeForRelease, startDate, endDate) ?? 0;
 }

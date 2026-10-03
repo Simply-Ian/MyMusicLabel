@@ -4,10 +4,10 @@ internal record PersistentContract
 {
     private IContractImplementation Imp;
     public DateOnly SignDate { get; }
-    private DateOnly? BreakDate { get; init; }
+    public DateOnly? BreakDate { get; private init; }
     public bool IsActiveToDate(DateOnly date) => 
         SignDate <= date 
-        && date <= BreakDate 
+        && date < (BreakDate ?? DateOnly.MaxValue) 
         && _releaseDates.Count(relDate => relDate <= date) < PlannedReleaseCount;
     
     // Количество релизов, которые исполнитель обязан выпустить на лейбле по условиям договора
@@ -17,7 +17,11 @@ internal record PersistentContract
 
     public void AddNewRelease(DateOnly releaseDate)
     {
-        if (IsActiveToDate(releaseDate)) _releaseDates.Add(releaseDate);
+        if (IsActiveToDate(releaseDate))
+        {
+            _releaseDates.Add(releaseDate);
+            Imp.AddOccurenceOfPaymentConditionDate(releaseDate);
+        }
         else throw new BrokenContractException();
     }
 
@@ -40,14 +44,12 @@ internal record PersistentContract
     public decimal CalculatePayments(decimal totalIncome, DateOnly startDate, DateOnly endDate)
         => Imp.CalculatePayments(totalIncome, startDate, endDate);
 
-    public void AddOccurenceOfPaymentConditionDate(DateOnly date) => Imp.AddOccurenceOfPaymentConditionDate(date);
-
     public PersistentContract Break(DateOnly date)
     {
         if (date < SignDate) 
             throw new InvalidOperationException("Contract cannot be broken before it was signed. " +
                                                 "Make sure you've specified the right break date");
-        if (_releaseDates.Any(plannedDate => plannedDate >= date))
+        if (_releaseDates.Any(plannedDate => plannedDate > date))
             throw new InvalidOperationException("Cannot break a persistent contract with artist until all the planned " +
                                                 "releases he performs are published");
         return this with { BreakDate = date };

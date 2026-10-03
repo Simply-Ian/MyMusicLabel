@@ -12,8 +12,6 @@ public class FakeStreamingPlatformAppService(
     double popularity
 ) : IStreamingPlatformAppService
 {
-    private record Publication(Guid ReleaseId, DateOnly PublicationDate);
-    
     // Ключ - Id релиза, значение - дата релиза
     private readonly Dictionary<Guid, PublishedRelease> _publishedReleases = [];
 
@@ -21,42 +19,44 @@ public class FakeStreamingPlatformAppService(
     // одно и то же значение (Id релиза)
     private readonly Dictionary<Guid, Guid> _trackToReleaseId = [];
     
-    private Random _rndGen = new();
-    
     public void Publish(Release release, Guid artistId, DateOnly date)
     {
-        _publishedReleases.Add(release.Id, new(release, date, (uint)_rndGen.Next(50, 1000)));
+        Random rndGen = new(date.DayNumber);
+        _publishedReleases.Add(release.Id, new(release, date, (uint)rndGen.Next(50, 1000)));
         release.TrackIds.ForEach(trackId => _trackToReleaseId.Add(trackId, release.Id));
     }
     
     public IEnumerable<int> GetTrackListeningsInPeriod(Guid trackId, DateOnly startDate, DateOnly endDate)
     {
         if (!_trackToReleaseId.TryGetValue(trackId, out var releaseId)) return [];
+        if (!_publishedReleases.TryGetValue(releaseId, out var publishedRelease)) return [];
+        if (startDate < publishedRelease.ReleaseDate) startDate = publishedRelease.ReleaseDate;
         List<int> listeningsPerDay = [];
         for (DateOnly curDate = startDate; curDate <= endDate; curDate = curDate.AddDays(1))
         {
-            int upperBound = _maxListeningsForReleaseOnDate(releaseId, curDate);
+            int upperBound = _maxListeningsForReleaseOnDate(publishedRelease, curDate);
             /* Seeding the random generator to ensure reproducibility instead of generating and storing exact listenings
             count per day */
-            _rndGen = new Random(curDate.DayNumber); 
-            listeningsPerDay.Add(_rndGen.Next((int)(-0.1 * upperBound), (int)(0.1 * upperBound)) + upperBound);
+            var rndGen = new Random(curDate.DayNumber); 
+            listeningsPerDay.Add(rndGen.Next((int)(-0.1 * upperBound), (int)(0.1 * upperBound)) + upperBound);
         }
         return listeningsPerDay;
     }
 
-    public IEnumerable<decimal> GetTrackPaymentsInPeriod(Guid releaseId, DateOnly startDate, DateOnly endDate)
-        => GetTrackListeningsInPeriod(releaseId, startDate, endDate)
+    public IEnumerable<decimal> GetTrackPaymentsInPeriod(Guid trackId, DateOnly startDate, DateOnly endDate)
+        => GetTrackListeningsInPeriod(trackId, startDate, endDate)
             .Select(listenings => listenings * ListeningCost);
 
     public decimal ListeningCost => listeningCost;
 
-    private int _maxListeningsForReleaseOnDate(Guid releaseId, DateOnly date) 
-    => (int)(_publishedReleases[releaseId].MaxPossibleListeningsPerDay
-             * Math.Exp(-popularity * (date.DayNumber - _publishedReleases[releaseId].ReleaseDate.DayNumber)));
+    private int _maxListeningsForReleaseOnDate(PublishedRelease publishedRelease, DateOnly date) 
+    => (int)(publishedRelease.MaxPossibleListeningsPerDay
+             * Math.Exp(-popularity * (date.DayNumber - publishedRelease.ReleaseDate.DayNumber)));
 
     public void Revoke(Guid releaseId, Guid artistId)
     {
-        _publishedReleases.Remove(releaseId);
+        if (!_publishedReleases.Remove(releaseId, out var publishedRelease)) return;
+        foreach (var trackId in publishedRelease.Release.TrackIds) _trackToReleaseId.Remove(trackId);
     }
 }
 
