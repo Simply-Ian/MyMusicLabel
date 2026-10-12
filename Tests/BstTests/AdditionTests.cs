@@ -1,4 +1,4 @@
-using MyMusicLabel.Domain.Collections;
+using MyMusicLabel.Domain.Collections.BinarySearchTree;
 
 namespace Tests.BstTests;
 

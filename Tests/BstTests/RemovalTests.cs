@@ -1,4 +1,4 @@
-using MyMusicLabel.Domain.Collections;
+using MyMusicLabel.Domain.Collections.BinarySearchTree;
 
 namespace Tests.BstTests;
 
@@ -61,5 +61,25 @@ public class RemovalTests
         
         Assert.That(tree, Has.Count.EqualTo(11));
         Assert.That(tree.Select(i => i.Value), Is.EquivalentTo(Enumerable.Range(1, 12).Where(i => i != 8)));
+    }
+
+    [Test]
+    public void ClearTree()
+    {
+        BinarySearchTree<int> tree = [0, 1, 2, -2];
+        
+        tree.Clear();
+        
+        Assert.That(tree, Has.Count.EqualTo(0));
+        Assert.That(tree.Select(node => node.Value), Is.EquivalentTo(new List<int>()));
+    }
+
+    [Test]
+    public void ClearEmptyTree()
+    {
+        BinarySearchTree<int> tree = [];
+        
+        Assert.DoesNotThrow(() => tree.Clear());
+        Assert.That(tree, Has.Count.EqualTo(0));
     }
 }

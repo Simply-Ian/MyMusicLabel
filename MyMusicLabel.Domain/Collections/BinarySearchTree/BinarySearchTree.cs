@@ -1,22 +1,18 @@
 using System.Collections;
-using System.Runtime.CompilerServices;
 
-// For testing purposes, so that I can place unit tests for BST and Chain in the Tests project
-[assembly: InternalsVisibleTo("Tests")]
-
-namespace MyMusicLabel.Domain.Collections;
+namespace MyMusicLabel.Domain.Collections.BinarySearchTree;
 
 internal class BinarySearchTree<TValue> : IEnumerable<TreeNode<TValue>>
-where TValue : IComparable
+    where TValue : IComparable<TValue>, IEquatable<TValue>
 {
     private TreeNode<TValue>? _root;
     public uint Count { get; private set; }
     
     // Я решил реализовать интерфейс IEnumerable без yield просто ради интереса и практики.
     public IEnumerator<TreeNode<TValue>> GetEnumerator() => new TreeEnumerator<TValue>(_root);
-
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
+    #region Add
     public void Add(TValue value)
     {
         Count++;
@@ -45,7 +41,9 @@ where TValue : IComparable
 
         return prevNode;
     }
+    #endregion
 
+    #region Remove
     /// <summary>
     /// Throws InvalidOperationException in case the provided value is not stored in the tree.
     /// </summary>
@@ -67,6 +65,7 @@ where TValue : IComparable
                 _replaceNodeWithLeftmostDescendant(node);
                 break;
         }
+        // Мб стоит сюда добавить вызов сборщика мусора, чтобы автоматически подобрал удаленный узел
         Count--;
     }
 
@@ -115,89 +114,13 @@ where TValue : IComparable
             else parent.LeftChild = leftmostDescendant;
         }
     }
-}
+    #endregion
 
-internal class TreeNode<T>(T val, TreeNode<T>? parent) where T : IComparable
-{
-    public TreeNode<T>? LeftChild
+    public void Clear()
     {
-        get;
-        set
-        {
-            field = value;
-            value?.Parent = this;
-        }
-    }
-    public TreeNode<T>? RightChild {
-        get;
-        set
-        {
-            field = value;
-            value?.Parent = this;
-        }
-    }
-
-    public TreeNode<T>? Parent { get; private set; } = parent;
-    
-    public T Value { get; } = val;
-    
-    public bool HasLeftChild => LeftChild is not null;
-    public bool HasRightChild => RightChild is not null;
-    public bool HasParent => Parent is not null;
-    
-    public static implicit operator TreeNode<T>(T value) => new (value, null);
-    
-    public override string ToString() 
-        => $"TreeNode({Value.ToString() ?? "null"})";
-}
-
-// Обходит дерево слева направо
-internal class TreeEnumerator<T>(TreeNode<T>? root) : IEnumerator<TreeNode<T>> where T : IComparable
-{
-    private TreeNode<T>? _current;
-    private readonly HashSet<TreeNode<T>> _visitedNodes = [];
-    public bool MoveNext()
-    {
-        var previousNode = _current;
-        // Microsoft docs: enumerators are positioned before the first element until the first MoveNext() call.
-        if (_current is null) _descendToLeftmostNode();
-        else
-        {
-            if (CanVisitRightChild) _current = _current.RightChild!;
-            if (CanVisitLeftChild)
-                while (_current.HasLeftChild) _current = _current.LeftChild!;
-            // Вторая часть условия нужна, если мы в первом условном операторе пришли в правого сына без детей
-            else if (_current.HasParent && _visitedNodes.Contains(_current))
-            {
-                while (_current.Parent?.RightChild == _current) _current = _current.Parent;
-                if (_current.HasParent) // Текущий узел - левый сын
-                    _current = _current.Parent!;
-                else return false; // Вернулись в корень
-            } 
-        }
-        _visitedNodes.Add(_current!);
-        return previousNode != _current;
-    }
-    
-    private bool CanVisitRightChild => (_current?.HasRightChild ?? false) && !_visitedNodes.Contains(_current.RightChild!);
-    private bool CanVisitLeftChild => (_current?.HasLeftChild ?? false) && !_visitedNodes.Contains(_current.LeftChild!);
-
-    public void Reset()
-    {
-        _visitedNodes.Clear();
-        _current = null;
-    }
-
-    TreeNode<T> IEnumerator<TreeNode<T>>.Current => _current!;
-
-    object? IEnumerator.Current => _current;
-
-    public void Dispose() { }
-
-    private void _descendToLeftmostNode()
-    {
-        if (root is null) return;
-        _current = root;
-        while (_current.HasLeftChild) _current = _current.LeftChild!;
+        // Мб стоит сюда добавить вызов сборщика мусора, чтобы автоматически подобрал удаленные узлы
+        _root?.DeleteChildrenRecursively();
+        _root = null;
+        Count = 0;
     }
 }
