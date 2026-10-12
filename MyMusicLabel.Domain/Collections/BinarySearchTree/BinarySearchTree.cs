@@ -101,8 +101,12 @@ internal class BinarySearchTree<TValue> : IEnumerable<TreeNode<TValue>>
         var leftmostDescendant = rightChild;
         while (leftmostDescendant!.HasLeftChild) leftmostDescendant = leftmostDescendant.LeftChild;
         
-        leftmostDescendant.Parent!.LeftChild = leftmostDescendant.RightChild;
-        leftmostDescendant.RightChild = node.RightChild;
+        // Если правый сын удаляемого узла не имеет левого потомка, перецеплять правого сына к родителю не надо
+        if (leftmostDescendant.Parent!.LeftChild == leftmostDescendant)
+        {
+            leftmostDescendant.Parent!.LeftChild = leftmostDescendant.RightChild;
+            leftmostDescendant.RightChild = node.RightChild;
+        }
         leftmostDescendant.LeftChild = node.LeftChild;
         
         if (!node.HasParent) // Удаление корня
@@ -122,5 +126,22 @@ internal class BinarySearchTree<TValue> : IEnumerable<TreeNode<TValue>>
         _root?.DeleteChildrenRecursively();
         _root = null;
         Count = 0;
+    }
+
+    public uint ItemCount(TValue value)
+    {
+        if (_root is null) return 0;
+        var curNode = _root;
+        while (curNode is not null && !curNode.Value.Equals(value))
+            curNode = value.CompareTo(curNode.Value) > 0 ? curNode.RightChild : curNode.LeftChild;
+        if (curNode is null) return 0;
+
+        uint counter = 0;
+        while (curNode is not null && curNode!.Value.Equals(value))
+        {
+            counter++;
+            curNode = curNode.LeftChild;
+        }
+        return counter;
     }
 }

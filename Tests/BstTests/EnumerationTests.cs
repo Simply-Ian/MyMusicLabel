@@ -29,4 +29,13 @@ public class EnumerationTests
         BinarySearchTree<int> tree = [];
         Assert.That(tree, Has.Count.EqualTo(0));
     }
+
+    [TestCase(0, ExpectedResult = 1u)]
+    [TestCase(-1, ExpectedResult = 2u)]
+    [TestCase(2, ExpectedResult = 2u)]
+    public uint ItemCount(int item)
+    {
+        BinarySearchTree<int> tree = [0, -1, -1, 3, 2, 4, 2];
+        return tree.ItemCount(item);
+    }
 }

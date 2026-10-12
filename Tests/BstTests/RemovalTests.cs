@@ -82,4 +82,14 @@ public class RemovalTests
         Assert.DoesNotThrow(() => tree.Clear());
         Assert.That(tree, Has.Count.EqualTo(0));
     }
+
+    [Test]
+    public void RemoveRoot()
+    {
+        BinarySearchTree<int> tree = [0, 2, 3, -1];
+        
+        tree.Remove(0);
+        Assert.That(tree, Has.Count.EqualTo(3));
+        Assert.That(tree.Select(node => node.Value), Is.EquivalentTo(new List<int>([-1, 2, 3])));
+    }
 }
