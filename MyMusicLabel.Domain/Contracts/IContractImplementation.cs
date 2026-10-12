@@ -2,8 +2,6 @@ namespace MyMusicLabel.Domain.Contracts;
 
 internal interface IContractImplementation
 {
-    IReadOnlyList<DateOnly> OccurenceDates { get; }
-    
     /// <summary>
     /// Считает отчисления артисту на основе дохода от треков
     /// </summary>
