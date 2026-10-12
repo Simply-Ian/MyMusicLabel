@@ -3,7 +3,6 @@ namespace MyMusicLabel.Domain.Contracts;
 internal record FixedSumContract(decimal Price) : IContractImplementation
 {
     private readonly List<DateOnly> _occurenceDates = [];
-    public IReadOnlyList<DateOnly> OccurenceDates => _occurenceDates;
     public decimal CalculatePayments(decimal totalIncome, DateOnly startDate, DateOnly endDate)
         => Price * _occurenceDates.Count(date => startDate <= date && date <= endDate);
 
