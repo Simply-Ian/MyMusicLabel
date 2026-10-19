@@ -20,7 +20,7 @@ No CI/CD pipeline is built around
 The following code conventions are applied to the project:
 * Exceptions are the preferred way of errors handling. "Result" pattern is avoided. Domain and infrastructure exceptions are handled at the application layer. **You may not introduce any non-standard exception classes.**
 * Comments are written in Russian, **but you are not allowed to place any comments**
-* Agents **are not allowed to commit any files** (I will revert such commits and preserve changes manually, anyway).
+* Agents **are not allowed to commit any files** (I will reset such commits and preserve changes manually, anyway).
 * Only synchronous method invocations are allowed and no asynchronous methods should be defined since the application does not communicate with side APIs via network nor with database, etc.
 * All user commands (MyMusicLabel.Commands.ICommand implementations) are annotated with CommandName attribute. Its only parameter is
   * Command name if the command belongs to no group
