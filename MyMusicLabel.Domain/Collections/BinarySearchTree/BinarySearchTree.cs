@@ -49,9 +49,20 @@ internal class BinarySearchTree<TValue> : IEnumerable<TreeNode<TValue>>
     /// </summary>
     public void Remove(TValue value)
     {
-        var node = this.First(node => node.Value.Equals(value));
+        var node = _root;
+        while (!(node is null || node.Value.Equals(value)))
+        {
+            node = value.CompareTo(node.Value) switch
+            {
+                < 0 => node.LeftChild,
+                > 0 => node.RightChild,
+                _ => node
+            };
+        }
+        
         switch (node)
         {
+            case null: throw new InvalidOperationException();
             case { HasLeftChild: false, HasRightChild: false }:
                 _deleteChildlessNode(node);
                 break;
