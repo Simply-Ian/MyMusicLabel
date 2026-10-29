@@ -4,7 +4,7 @@ using MyMusicLabel.Services;
 
 namespace MyMusicLabel.Commands;
 
-[CommandName("trackcreate")]
+[CommandName("track.create")]
 internal class CreateTrackCommand(ITrackRepository trackRepo, ITrackResolver trackResolver) : ICommand
 {
     public void Invoke(string[] args, CommandContext context)

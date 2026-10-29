@@ -4,7 +4,7 @@ using MyMusicLabel.Services;
 
 namespace MyMusicLabel.Commands;
 
-[CommandName("artistsign")]
+[CommandName("artist.sign")]
 internal class SignArtistCommand(IArtistLookup artistLookup, IArtistRepository artistRepo, ICustomLogger logger) : ICommand
 {
     public void Invoke(string[] args, CommandContext context)

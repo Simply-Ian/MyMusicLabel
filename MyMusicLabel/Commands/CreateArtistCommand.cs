@@ -6,7 +6,7 @@ using MyMusicLabel.Services;
 
 namespace MyMusicLabel.Commands;
 
-[CommandName("artistcreate")]
+[CommandName("artist.create")]
 internal class CreateArtistCommand(
     IArtistRepository artists,
     IArtistResolver aliases,

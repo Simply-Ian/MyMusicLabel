@@ -2,7 +2,7 @@ using MyMusicLabel.Domain.Services;
 
 namespace MyMusicLabel.Commands;
 
-[CommandName("walletprofit")]
+[CommandName("wallet.profit")]
 internal class ShowTotalProfitCommand(WalletDomainService wallet) : ICommand
 {
     public void Invoke(string[] args, CommandContext context)

@@ -7,7 +7,7 @@ using MyMusicLabel.Services;
 
 namespace MyMusicLabel.Commands;
 
-[CommandName("tracklistenings")]
+[CommandName("track.listenings")]
 internal class TrackListeningsCommand(
     ITrackResolver trackResolver,
     ITrackRepository trackRepo,

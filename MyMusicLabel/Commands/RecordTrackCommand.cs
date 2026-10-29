@@ -4,7 +4,7 @@ using MyMusicLabel.Services;
 
 namespace MyMusicLabel.Commands;
 
-[CommandName("trackrecord")]
+[CommandName("track.record")]
 internal class RecordTrackCommand(
     ITrackResolver trackResolver,
     IArtistLookup artistLookup,

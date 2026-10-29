@@ -4,7 +4,7 @@ using MyMusicLabel.Services;
 
 namespace MyMusicLabel.Commands;
 
-[CommandName("artistlist")]
+[CommandName("artist.list")]
 internal class ListArtistsCommand(IArtistRepository artistRepo, IArtistResolver artistResolver) : ICommand
 {
     public void Invoke(string[] args, CommandContext context)

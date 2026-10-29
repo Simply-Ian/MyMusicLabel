@@ -4,7 +4,7 @@ using MyMusicLabel.Services;
 
 namespace MyMusicLabel.Commands;
 
-[CommandName("artistpublish")]
+[CommandName("artist.publish")]
 internal class PublishReleaseCommand(
     IArtistLookup artistLookup,
     IPlatformResolver platformResolver

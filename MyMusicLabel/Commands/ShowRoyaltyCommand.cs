@@ -3,7 +3,7 @@ using MyMusicLabel.Services;
 
 namespace MyMusicLabel.Commands;
 
-[CommandName("artistroyalty")]
+[CommandName("artist.royalty")]
 internal class ShowRoyaltyCommand(
     IArtistLookup artistLookup,
     WalletDomainService wallet

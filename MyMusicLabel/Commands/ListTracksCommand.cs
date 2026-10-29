@@ -4,7 +4,7 @@ using MyMusicLabel.Services;
 
 namespace MyMusicLabel.Commands;
 
-[CommandName("tracklist")]
+[CommandName("track.list")]
 internal class ListTracksCommand(
     ITrackRepository trackRepo,
     ITrackResolver trackResolver,

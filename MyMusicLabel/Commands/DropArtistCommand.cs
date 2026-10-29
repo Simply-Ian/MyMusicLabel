@@ -4,7 +4,7 @@ using MyMusicLabel.Services;
 
 namespace MyMusicLabel.Commands;
 
-[CommandName("artistdrop")]
+[CommandName("artist.drop")]
 internal class DropArtistCommand(IArtistLookup artistLookup, IArtistRepository artistRepo, ICustomLogger logger) : ICommand
 {
     public void Invoke(string[] args, CommandContext context)

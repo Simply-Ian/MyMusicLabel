@@ -4,7 +4,7 @@ using MyMusicLabel.Services;
 
 namespace MyMusicLabel.Commands;
 
-[CommandName("trackaddlyrics")]
+[CommandName("track.add.lyrics")]
 internal class AddLyricsCommand(
     ITrackResolver trackResolver,
     IArtistLookup artistLookup,
@@ -45,11 +45,11 @@ internal class AddLyricsCommand(
     }
 
     private const string Usage = "Укажите короткое имя трека, текстовика и условия оплаты: \n" +
-                                 "\t track <короткое имя> addlyrics <короткое имя> for charge <процент> либо \n" +
-                                 "\t track <короткое имя> addlyrics <короткое имя> for fixed <стоимость> либо \n";
+                                 "\t track <короткое имя> add.lyrics <короткое имя> for charge <процент> либо \n" +
+                                 "\t track <короткое имя> add.lyrics <короткое имя> for fixed <стоимость> либо \n";
 
-    public string Help => "Добавить текст к треку: track <короткое имя трека> addlyrics <короткое имя текстовика> for " +
+    public string Help => "Добавить текст к треку: track <короткое имя трека> add.lyrics <короткое имя текстовика> for " +
                           "charge <процент> - текстовик будет получать процент с доходов\n" +
-                          "    track <короткое имя трека> addlyrics <короткое имя текстовика> for fixed <сумма> - " +
+                          "    track <короткое имя трека> add.lyrics <короткое имя текстовика> for fixed <сумма> - " +
                           "текстовик будет получать фиксированную сумму за текст";
 }

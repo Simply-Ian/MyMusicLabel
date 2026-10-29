@@ -6,7 +6,7 @@ using MyMusicLabel.Services;
 
 namespace MyMusicLabel.Commands;
 
-[CommandName("artistrelease.listenings")]
+[CommandName("artist.release.listenings")]
 internal class ShowReleaseListeningsCommand(
     IArtistLookup artistLookup,
     ITrackRepository trackRepo

@@ -4,14 +4,14 @@ using MyMusicLabel.Services;
 
 namespace MyMusicLabel.Commands;
 
-[CommandName("artistaddrelease")]
+[CommandName("artist.add.release")]
 internal class AddReleaseCommand(IArtistLookup artistLookup, IArtistRepository artistRepo) : ICommand
 {
     public void Invoke(string[] args, CommandContext context)
     {
         if (args.Length < 5)
         {
-            Console.WriteLine("Укажите название и стиль релиза: artist <короткое имя> addrelease <название> <стиль>");
+            Console.WriteLine("Укажите название и стиль релиза: artist <короткое имя> add.release <название> <стиль>");
             return;
         }
 
@@ -38,5 +38,5 @@ internal class AddReleaseCommand(IArtistLookup artistLookup, IArtistRepository a
         Console.WriteLine($"Создан релиз \"{release.Title}\" в стиле {release.Style} для артиста {artist.Name}");
     }
 
-    public string Help => "Добавить релиз артисту: artist <короткое имя> addrelease <название> <стиль>";
+    public string Help => "Добавить релиз артисту: artist <короткое имя> add.release <название> <стиль>";
 }

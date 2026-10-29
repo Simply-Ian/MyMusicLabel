@@ -3,7 +3,7 @@ using MyMusicLabel.Services;
 
 namespace MyMusicLabel.Commands;
 
-[CommandName("artistrelease.income")]
+[CommandName("artist.release.income")]
 internal class ShowReleaseIncomeCommand(
     IArtistLookup artistLookup,
     WalletDomainService wallet

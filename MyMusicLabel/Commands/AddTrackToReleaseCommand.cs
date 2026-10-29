@@ -4,7 +4,7 @@ using MyMusicLabel.Services;
 
 namespace MyMusicLabel.Commands;
 
-[CommandName("artistadd")]
+[CommandName("artist.add.track")]
 internal class AddTrackToReleaseCommand(
     IArtistLookup artistLookup,
     ITrackResolver trackResolver,
@@ -14,10 +14,9 @@ internal class AddTrackToReleaseCommand(
 {
     public void Invoke(string[] args, CommandContext context)
     {
-        if (args.Length != 7 || !args[3].Equals("track", StringComparison.OrdinalIgnoreCase)
-                              || !args[5].Equals("to", StringComparison.OrdinalIgnoreCase))
+        if (args.Length != 6 || !args[4].Equals("to", StringComparison.OrdinalIgnoreCase))
         {
-            Console.WriteLine("Укажите короткое имя трека и номер релиза: artist <короткое имя> add track " +
+            Console.WriteLine("Укажите короткое имя трека и номер релиза: artist <короткое имя> add.track " +
                               "<короткое имя трека> to <номер релиза>");
             return;
         }
@@ -28,7 +27,7 @@ internal class AddTrackToReleaseCommand(
             return;
         }
 
-        if (!uint.TryParse(args[6], out var releaseNumber) || releaseNumber == 0)
+        if (!uint.TryParse(args[5], out var releaseNumber) || releaseNumber == 0)
         {
             Console.WriteLine("Номер релиза должен быть положительным целым числом");
             return;
@@ -43,7 +42,7 @@ internal class AddTrackToReleaseCommand(
         Track track;
         try
         {
-            track = trackRepo.GetTrack(trackResolver.Resolve(args[4]));
+            track = trackRepo.GetTrack(trackResolver.Resolve(args[3]));
         }
         catch (KeyNotFoundException)
         {
@@ -71,6 +70,6 @@ internal class AddTrackToReleaseCommand(
         artistRepo.StoreArtist(artist);
     }
 
-    public string Help => "Добавить трек в релиз: artist <короткое имя> add track <короткое имя трека> to " +
+    public string Help => "Добавить трек в релиз: artist <короткое имя> add.track <короткое имя трека> to " +
                           "<номер релиза>";
 }

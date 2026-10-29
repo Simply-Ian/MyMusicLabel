@@ -2,7 +2,7 @@ using MyMusicLabel.Services;
 
 namespace MyMusicLabel.Commands;
 
-[CommandName("platformlist")]
+[CommandName("platform.list")]
 internal class ListPlatformsCommand(IPlatformResolver platformResolver) : ICommand
 {
     public void Invoke(string[] args, CommandContext context)
