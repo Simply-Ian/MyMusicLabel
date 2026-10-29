@@ -1,10 +1,11 @@
 using MyMusicLabel.Domain.Repos;
+using MyMusicLabel.Infrastructure.Services.Logging;
 using MyMusicLabel.Services;
 
 namespace MyMusicLabel.Commands;
 
 [CommandName("artistsign")]
-internal class SignArtistCommand(IArtistLookup artistLookup, IArtistRepository artistRepo) : ICommand
+internal class SignArtistCommand(IArtistLookup artistLookup, IArtistRepository artistRepo, ICustomLogger logger) : ICommand
 {
     public void Invoke(string[] args, CommandContext context)
     {
@@ -30,6 +31,7 @@ internal class SignArtistCommand(IArtistLookup artistLookup, IArtistRepository a
                 artist.SignPerformerForCharge(chargePercents / 100, context.Today, releasesNum);
                 Console.WriteLine($"Заключен контракт на выпуск {releasesNum} релизов с исполнителем {artist.Name}. " +
                                   $"Величина отчислений: {chargePercents}% от доходов. Дата подписания: {context.Today.ToString("dd.MM.yyyy")}");
+                logger.LogInfo("Заключен контракт с артистом {0}", artist.Name);
             }
             else if (contractType == "fixed")
             {
@@ -37,6 +39,7 @@ internal class SignArtistCommand(IArtistLookup artistLookup, IArtistRepository a
                 artist.SignPerformerForFixedSum(price, context.Today, releasesNum);
                 Console.WriteLine($"Заключен контракт на выпуск {releasesNum} релизов с исполнителем {artist.Name}. " +
                                   $"Величина отчислений: {price} руб. за первую публикацию релиза. Дата подписания: {context.Today.ToString("dd.MM.yyyy")}");
+                logger.LogInfo("Заключен контракт с артистом {0}", artist.Name);
             }
             else
             {
