@@ -1,9 +1,6 @@
-using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 using MyMusicLabel.Commands;
-using MyMusicLabel.Commands.Validators;
-using MyMusicLabel.Domain.Services;
-using MyMusicLabel.Infrastructure.Services;
+using MyMusicLabel.Infrastructure.Services.Logging;
 using MyMusicLabel.Services;
 
 namespace MyMusicLabel;
@@ -30,5 +27,6 @@ public static class DiExtensions
             .AddSingleton<IArtistResolver, DictionaryArtistResolver>()
             .AddSingleton<ITrackResolver, DictionaryTrackResolver>()
             .AddSingleton<IArtistLookup, ArtistLookup>()
-            .AddSingleton<IPlatformResolver>(new DictionaryPlatformResolver(platformAliases));
+            .AddSingleton<IPlatformResolver>(new DictionaryPlatformResolver(platformAliases))
+            .AddTransient<ICustomLogger, ConsoleCustomLogger>();
 }
