@@ -26,7 +26,10 @@ public class FakeStreamingPlatformAppService(
         release.TrackIds.ForEach(trackId => _trackToReleaseId.Add(trackId, release.Id));
     }
     
-    public IEnumerable<int> GetTrackListeningsInPeriod(Guid trackId, DateOnly startDate, DateOnly endDate)
+    public IEnumerable<int> GetTrackListeningsInPeriod(Guid trackId, DateOnly startDate, DateOnly endDate) 
+        => _getListenings(trackId, startDate, endDate);
+
+    private IEnumerable<int> _getListenings(Guid trackId, DateOnly startDate, DateOnly endDate)
     {
         if (!_trackToReleaseId.TryGetValue(trackId, out var releaseId)) return [];
         if (!_publishedReleases.TryGetValue(releaseId, out var publishedRelease)) return [];
@@ -41,6 +44,46 @@ public class FakeStreamingPlatformAppService(
             listeningsPerDay.Add(rndGen.Next((int)(-0.1 * upperBound), (int)(0.1 * upperBound)) + upperBound);
         }
         return listeningsPerDay;
+    }
+    
+    public event IStreamingPlatformAppService.GetTrackListeningsCompletedEventHandler? GetTrackListeningsCompleted;
+    public void GetTrackListeningsInPeriodAsync(
+        Guid trackId, 
+        DateOnly startDate, 
+        DateOnly endDate
+    )
+    {
+        _getTrackListeningsInPeriodAsyncCancelled = false;
+        Task.Run(() =>
+            {
+                Task.Delay(new Random().Next(1000, 5000)).Wait();
+                return _getListenings(trackId, startDate, endDate);
+            })
+            .ContinueWith( delegate(Task<IEnumerable<int>> task)
+            {
+                if (!_getTrackListeningsInPeriodAsyncCancelled)
+                {
+                    GetTrackListeningsCompleted?.Invoke(
+                        this, 
+                        new(
+                            task.IsCompletedSuccessfully ? task.Result : [], 
+                            task.Exception, 
+                            false, 
+                            null
+                        )
+                    );
+                }
+            });
+    }
+
+    private bool _getTrackListeningsInPeriodAsyncCancelled;
+    public void GetTrackListeningsInPeriodAsyncCancel()
+    {
+        _getTrackListeningsInPeriodAsyncCancelled = true;
+        GetTrackListeningsCompleted?.Invoke(
+            this, 
+            new( [], null, true, null)
+        );
     }
 
     public IEnumerable<decimal> GetTrackPaymentsInPeriod(Guid trackId, DateOnly startDate, DateOnly endDate)

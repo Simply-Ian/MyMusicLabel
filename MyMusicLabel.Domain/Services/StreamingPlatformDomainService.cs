@@ -13,15 +13,15 @@ public class StreamingPlatformDomainService(
     {
         var artist = artistRepo.GetArtist(artistId);
         if (!artist.HasRelease(release.Id))
-            throw new ArgumentException($"The artist is not a performer of release {release.Title}");
+            throw new ArgumentException($"У артиста {artist.Name} нет релиза {release.Title}");
         if (!artist.IsSignedToDate(date)) 
-            throw new InvalidOperationException("Cannot publish the release due to that performer's contract " +
-                                                "is not active to the date");
+            throw new InvalidOperationException("Невозможно опубликовать релиз, поскольку контракт с артистом не " +
+                                                "действует на указанную дату");
 
         /* Не внутри релиза, т. к. Track - отдельный агрегат. Release хранит Id-шники треков, и чтобы сделать эту же
          проверку внутри релиза, нужно передавать внутрь него (сущности) ссылку на репозиторий, что не очень хорошо */
         if (!_releaseIsReadyForPublishing(release.TrackIds)) 
-            throw new ArgumentException("This release is not ready for publishing");
+            throw new ArgumentException("Релиз не готов к публикации или не содержит треков");
         
         artist.MarkNewPublishedRelease(release.Id, platformId, date);
         

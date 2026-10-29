@@ -1,10 +1,11 @@
 using MyMusicLabel.Domain.Repos;
+using MyMusicLabel.Infrastructure.Services.Logging;
 using MyMusicLabel.Services;
 
 namespace MyMusicLabel.Commands;
 
 [CommandName("artistdrop")]
-internal class DropArtistCommand(IArtistLookup artistLookup, IArtistRepository artistRepo) : ICommand
+internal class DropArtistCommand(IArtistLookup artistLookup, IArtistRepository artistRepo, ICustomLogger logger) : ICommand
 {
     public void Invoke(string[] args, CommandContext context)
     {
@@ -29,10 +30,12 @@ internal class DropArtistCommand(IArtistLookup artistLookup, IArtistRepository a
         catch (InvalidOperationException exc)
         {
             Console.WriteLine($"Невозможно расторгнуть контракт с исполнителем {artist.Name}: {exc.Message}");
+            logger.LogWarning("Ошибка расторжения контракта с артистом {0}", exc, artist.Name);
             return;
         }
 
         artistRepo.StoreArtist(artist);
+        logger.LogInfo("Контракт с артистом {0} расторгнут", artist.Name);
         Console.WriteLine($"Контракт с исполнителем {artist.Name} успешно расторгнут {context.Today:dd.MM.yyyy}");
     }
 
