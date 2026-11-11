@@ -2,6 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 using MyMusicLabel.Domain.Entities;
 using MyMusicLabel.Domain.Repos;
 using MyMusicLabel.Domain.Services;
+using MyMusicLabel.Infrastructure.Services.Logging;
 using MyMusicLabel.Output;
 using MyMusicLabel.Services;
 
@@ -11,7 +12,8 @@ namespace MyMusicLabel.Commands;
 internal class TrackListeningsCommand(
     ITrackResolver trackResolver,
     ITrackRepository trackRepo,
-    IPlatformResolver platformResolver
+    IPlatformResolver platformResolver,
+    ICustomLogger logger
 ) : ICommand
 {
     private static readonly char[] SpinnerFrames = ['\\', '|', '/', '-'];
@@ -55,6 +57,7 @@ internal class TrackListeningsCommand(
             cancelled = args.Cancelled;
             listenings = args.Listenings?.ToList() ?? [];
             completed = true;
+            logger.LogInfo("Results retrieved");
         }
     }
 
