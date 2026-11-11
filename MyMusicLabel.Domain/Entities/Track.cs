@@ -1,4 +1,5 @@
 using MyMusicLabel.Domain.Contracts;
+using MyMusicLabel.Domain.Exceptions;
 
 namespace MyMusicLabel.Domain.Entities;
 
@@ -36,7 +37,7 @@ public class Track (Guid id) : BaseEntity(id)
 
     public void MarkRecorded(Guid performerId)
     {
-        if (!HasMusic) throw new InvalidOperationException("Cannot record a track for which music isn't written yet");
+        if (!HasMusic) throw new TrackNotReadyException();
         IsRecorded = true;
         PerformerId = performerId;
     }

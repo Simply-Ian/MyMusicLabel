@@ -1,4 +1,5 @@
 using MyMusicLabel.Domain.Entities;
+using MyMusicLabel.Domain.Exceptions;
 using MyMusicLabel.Domain.Repos;
 using MyMusicLabel.Services;
 
@@ -33,7 +34,21 @@ internal class AddReleaseCommand(IArtistLookup artistLookup, IArtistRepository a
 
         var title = string.Join(" ", args[3..^1]);
         var release = new Release(Guid.NewGuid(), Enum.Parse<Style>(styleName), title, []);
-        artist.AddRelease(release);
+        try
+        {
+            artist.AddRelease(release);
+        }
+        catch (AlreadyPerformsException)
+        {
+            Console.WriteLine($"Артисту {artist.Name} уже присвоен этот релиз.");
+            return;
+        }
+        catch (ArtistMismatchException)
+        {
+            var existingPerformer = artistRepo.GetPerformerOfRelease(release.Id);
+            Console.WriteLine($"Артист {existingPerformer!.Name} уже является исполнителем этого релиза.");
+            return;
+        }
         artistRepo.StoreArtist(artist);
         Console.WriteLine($"Создан релиз \"{release.Title}\" в стиле {release.Style} для артиста {artist.Name}");
     }

@@ -1,3 +1,4 @@
+using MyMusicLabel.Domain.Exceptions;
 using MyMusicLabel.Domain.Repos;
 using MyMusicLabel.Domain.Services;
 using MyMusicLabel.Services;
@@ -30,13 +31,13 @@ internal class RecordTrackCommand(
             return;
         }
 
-        error = _parser.TryRun(
-            "записать трек",
-            () => productionService.RecordTrack(track.Id, performer.Id)
-        );
-        if (error is not null)
+        try
         {
-            Console.WriteLine(error);
+            productionService.RecordTrack(track.Id, performer.Id);
+        }
+        catch (TrackNotReadyException)
+        {
+            Console.WriteLine("Трек еще не имеет музыки,  потому не может быть записан");
             return;
         }
 

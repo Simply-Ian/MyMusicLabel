@@ -12,4 +12,9 @@ public class ArtistRepository : IArtistRepository
     public void StoreArtist(Artist artist) => _artists[artist.Id] = artist;
 
     public Artist[] GetAllArtists() => _artists.Values.ToArray();
+
+    public Artist? GetPerformerOfRelease(Guid releaseId) =>
+        _artists
+            .Select(pair => pair.Value)
+            .FirstOrDefault(artist => artist.HasRelease(releaseId));
 }

@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using MyMusicLabel.Domain.Exceptions;
 using MyMusicLabel.Domain.Services;
 using MyMusicLabel.Services;
 
@@ -48,6 +49,11 @@ internal class PublishReleaseCommand(
         {
             var platformService = context.Services.GetRequiredKeyedService<StreamingPlatformDomainService>(platformId);
             platformService.Publish(release, artist.Id, platformId, context.Today);
+        }
+        catch (ReleaseAlreadyPublishedException)
+        {
+            Console.WriteLine($"Релиз {release.Title} уже опубликован на платформе {platformResolver.Resolve(platformId)}");
+            return;
         }
         catch (Exception exc)
         {

@@ -4,7 +4,6 @@ public class FileCustomLogger(string filename) : ICustomLogger
 {
     public void LogInfo(string message, params object[] args)
     {
-        // TODO: создавать новый файл?
         using var stream = new FileStream(filename, FileMode.Append, FileAccess.Write, FileShare.Read);
         using var writer = new StreamWriter(stream);
         writer.Write(LogFormatter.FormatInfo(message, args));

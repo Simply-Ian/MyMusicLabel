@@ -1,4 +1,6 @@
 using MoreLinq;
+using MyMusicLabel.Domain.Exceptions;
+
 namespace MyMusicLabel.Domain.Entities;
 
 public enum Style
@@ -20,29 +22,24 @@ public class Release(Guid id, Style style, string title, List<Guid> trackIds) : 
     {
         get => trackIds;
         set {
-            if (IsPublishedAnywhere) 
-                throw new InvalidOperationException("Release is already published and thus track list cannot be edited");
+            if (IsPublishedAnywhere) throw new ReleaseAlreadyPublishedException();
             var trackSet = new HashSet<Guid>(value);
             if (trackSet.Count != trackIds.Count) 
                 throw new ArgumentException("Release cannot contain the same track more than once");
             trackIds.Clear();
-            value.ForEach(x => trackIds.Add(x));
+            value.ForEach(trackIds.Add);
         }
     }
 
     public void AddTrack(Guid trackId)
     {
-        if (IsPublishedAnywhere)
-            throw new InvalidOperationException("Release is already published at some platform and thus track list " +
-                                                "cannot be edited");
+        if (IsPublishedAnywhere) throw new ReleaseAlreadyPublishedException();
         if (!trackIds.Contains(trackId)) trackIds.Add(trackId);
     }
 
     public void RemoveTrack(Guid trackId)
     {
-        if (IsPublishedAnywhere)
-            throw new InvalidOperationException("Release is already published at some platform and thus track list " +
-                                                "cannot be edited");
+        if (IsPublishedAnywhere) throw new ReleaseAlreadyPublishedException();
         trackIds.Remove(trackId);
     }
 
@@ -54,15 +51,12 @@ public class Release(Guid id, Style style, string title, List<Guid> trackIds) : 
 
     internal void MarkPublished(Guid platformId, DateOnly publicationDate)
     {
-        if (PlatformsWherePublished.ContainsKey(platformId)) 
-            throw new InvalidOperationException($"Release is already published at platform with this Id: {platformId}");
+        if (PlatformsWherePublished.ContainsKey(platformId)) throw new ReleaseAlreadyPublishedException();
         _platformsWherePublished.Add(platformId, publicationDate);
     }
     internal void MarkRevoked(Guid platformId)
     {
-        if (!PlatformsWherePublished.ContainsKey(platformId))
-            throw new InvalidOperationException("Cannot revoke the release which is not published on the specified " +
-                                                $"platform: {platformId}");
+        if (!PlatformsWherePublished.ContainsKey(platformId)) throw new ReleaseNotPublishedException(platformId);
         _platformsWherePublished.Remove(platformId);
     }
     
@@ -73,9 +67,7 @@ public class Release(Guid id, Style style, string title, List<Guid> trackIds) : 
         get;
         set
         {
-            if (IsPublishedAnywhere)
-                throw new InvalidOperationException("Release is already published at some platform and thus cannot " +
-                                                    "be renamed");
+            if (IsPublishedAnywhere) throw new ReleaseAlreadyPublishedException();
             field = value;
         }
     } = title;

@@ -1,3 +1,5 @@
+using MyMusicLabel.Domain.Exceptions;
+
 namespace MyMusicLabel.Domain.Contracts;
 
 internal record PersistentContract
@@ -8,21 +10,21 @@ internal record PersistentContract
     public bool IsActiveToDate(DateOnly date) => 
         SignDate <= date 
         && date < (BreakDate ?? DateOnly.MaxValue) 
-        && _releaseDates.Count(relDate => relDate <= date) < PlannedReleaseCount;
+        && _plannedReleases.Count(rel => rel.Date <= date) < ReleasesByContractNumber;
     
     // Количество релизов, которые исполнитель обязан выпустить на лейбле по условиям договора
-    private uint PlannedReleaseCount { get; }
+    private uint ReleasesByContractNumber { get; }
 
-    private readonly List<DateOnly> _releaseDates = [];
+    private readonly List<ReleasePlan> _plannedReleases = [];
 
-    public void AddNewRelease(DateOnly releaseDate)
+    public void AddNewRelease(Guid releaseId, DateOnly releaseDate)
     {
         if (IsActiveToDate(releaseDate))
         {
-            _releaseDates.Add(releaseDate);
+            _plannedReleases.Add(new ReleasePlan(releaseId, releaseDate));
             Imp.AddOccurenceOfPaymentConditionDate(releaseDate);
         }
-        else throw new BrokenContractException();
+        else throw new ContractInactiveException(releaseDate);
     }
 
     /* Явно прописанный конструктор вместо сгенерированного, т. к. нужно инициализировать приватное
@@ -31,7 +33,7 @@ internal record PersistentContract
     {
         SignDate = signDate;
         Imp = imp;
-        PlannedReleaseCount = plannedReleaseCount;
+        ReleasesByContractNumber = plannedReleaseCount;
     }
 
     /// <summary>
@@ -46,14 +48,13 @@ internal record PersistentContract
 
     public PersistentContract Break(DateOnly date)
     {
-        if (date < SignDate) 
-            throw new InvalidOperationException("Contract cannot be broken before it was signed. " +
-                                                "Make sure you've specified the right break date");
-        if (_releaseDates.Any(plannedDate => plannedDate > date))
-            throw new InvalidOperationException("Cannot break a persistent contract with artist until all the planned " +
-                                                "releases he performs are published");
+        if (!IsActiveToDate(date)) throw new ContractInactiveException(date);
+        var releasesAfterAttemptedDate = _plannedReleases
+            .Where(rel => rel.Date > date)
+            .ToList();
+        if (releasesAfterAttemptedDate.Any()) throw new ContractNotFulfilledException(date, releasesAfterAttemptedDate);
         return this with { BreakDate = date };
     }
 }
 
-public class BrokenContractException() : Exception("Contract is broken");
+public record struct ReleasePlan(Guid Id, DateOnly Date);

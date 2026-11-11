@@ -1,4 +1,5 @@
 using MyMusicLabel.Domain.Contracts;
+using MyMusicLabel.Domain.Exceptions;
 
 namespace MyMusicLabel.Domain.Entities;
 
@@ -48,48 +49,39 @@ public class Artist (Guid id, string name) : BaseEntity(id)
     /// <param name="release"></param>
     public void AddRelease(Release release)
     {
-        if (release.IsPublishedAnywhere)
-            throw new InvalidOperationException($"Cannot assign already published release to another artist");
-        if (Releases.Contains(release)) throw new ArgumentException("The artist is already performs this release");
-        
+        if (Releases.Contains(release)) throw new AlreadyPerformsException();
+        // Релиз опубликован от имени другого артиста
+        if (release.IsPublishedAnywhere) throw new ArtistMismatchException();
         _releases.Add(release);
     }
 
     public void RemoveRelease(Guid releaseId)
     {
-        var release = _releases.First(r => r.Id == releaseId) 
-                      ?? throw new ArgumentException("The artist does not perform this release");
+        var release = _releases.First(r => r.Id == releaseId) ?? throw new ReleaseNotFoundException(releaseId);
         if (release.IsPublishedAnywhere)
             throw new InvalidOperationException($"Cannot remove already published release");
-        if (!Releases.Contains(release)) throw new ArgumentException("The artist does not perform this release");
-        
         _releases.Remove(release);
     }
 
     internal void MarkNewPublishedRelease(Guid releaseId, Guid platformId, DateOnly date)
     {
-        if (_contract is null) 
-            throw new InvalidOperationException($"Cannot publish a release performed by an unsigned artist");
-        var release = _releases.First(r => r.Id == releaseId) 
-                      ?? throw new ArgumentException("The artist does not perform this release");
+        if (_contract is null || !_contract.IsActiveToDate(date)) throw new ContractInactiveException(date);
+        var release = _releases.First(r => r.Id == releaseId) ?? throw new ReleaseNotFoundException(releaseId);
         bool isFirstPublication = !release.IsPublishedAnywhere;
         release.MarkPublished(platformId, date);
-        if (isFirstPublication) _contract?.AddNewRelease(date);
+        if (isFirstPublication) _contract?.AddNewRelease(releaseId, date);
     }
 
     public void AddTrackToRelease(Guid releaseId, Track track)
     {
-        if (track.PerformerId != Id) 
-            throw new ArgumentException("Release by a specific artist cannot contain tracks performed by another artist");
-        var release = _releases.First(r => r.Id == releaseId) 
-                      ?? throw new ArgumentException("The artist does not perform this release");
+        if (track.PerformerId != Id) throw new ArtistMismatchException(track);
+        var release = _releases.First(r => r.Id == releaseId) ?? throw new ReleaseNotFoundException(releaseId);
         release.AddTrack(track.Id);
     }
 
     public void RemoveTrackFromRelease(Guid releaseId, Guid trackId)
     {
-        var release = _releases.First(r => r.Id == releaseId) 
-                      ?? throw new ArgumentException("The artist does not perform this release");
+        var release = _releases.First(r => r.Id == releaseId) ?? throw new ReleaseNotFoundException(releaseId);
         release.RemoveTrack(trackId);
     }
     

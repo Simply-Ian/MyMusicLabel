@@ -30,17 +30,7 @@ internal class ShowRoyaltyCommand(
             return;
         }
 
-        decimal totalRoyalty;
-        try
-        {
-            totalRoyalty = wallet.ComputeRoyaltyToArtist(artist.Id, startDate, endDate);
-        }
-        // TODO: ввести типы доменных исключений для разных ситуаций
-        catch (InvalidOperationException exc)
-        {
-            Console.WriteLine($"Не удалось рассчитать роялти: {exc.Message}");
-            return;
-        }
+        var totalRoyalty = wallet.ComputeRoyaltyToArtist(artist.Id, startDate, endDate);
 
         Console.WriteLine($"Роялти артиста \"{artist.Name}\" за период {startDate:dd.MM.yyyy} - {endDate:dd.MM.yyyy}: " +
                           $"{totalRoyalty:0.##} руб.");

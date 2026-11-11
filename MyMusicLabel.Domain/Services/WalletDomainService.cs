@@ -60,9 +60,7 @@ public class WalletDomainService
         ));
         var totalIncomeForRelease = incomesPerTrack.Values.Sum();
         var performer = artistRepo.GetArtist(performerId);
-        var performerRoyalties = performer.Releases.Contains(release) ? 
-            performer.CalculatePayments(totalIncomeForRelease, startDate, endDate)
-            : throw new ArgumentException("The artist does not perform this release");
+        var performerRoyalties = performer.CalculatePayments(totalIncomeForRelease, startDate, endDate);
         
         var tracks = trackRepo.GetTrackList(release.TrackIds);
         

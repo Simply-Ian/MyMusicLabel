@@ -8,14 +8,15 @@ namespace MyMusicLabel.Infrastructure;
 
 public static class DiExtensions
 {
-    public static IServiceCollection RegisterPlatformAdapters(this IServiceCollection services, Dictionary<string, Guid> aliases)
-        => services
-            .AddKeyedSingleton<IStreamingPlatformAppService>(
-                aliases["spotify"], new FakeStreamingPlatformAppService(3m, 0.8)
-            )
-            .AddKeyedSingleton<IStreamingPlatformAppService>(
-                aliases["yandex"], new FakeStreamingPlatformAppService(5m, 0.6)
+    public static IServiceCollection RegisterPlatformAdapters(this IServiceCollection services,
+        Dictionary<string, Guid> aliases)
+    {
+        foreach (var pair in aliases)
+            services.AddKeyedSingleton<IStreamingPlatformAppService>(
+                pair.Value, new FakeStreamingPlatformAppService(3m, 0.8)
             );
+        return services;
+    }
 
     public static IServiceCollection RegisterRepositories(this IServiceCollection services) =>
         services.AddSingleton<IArtistRepository, ArtistRepository>()

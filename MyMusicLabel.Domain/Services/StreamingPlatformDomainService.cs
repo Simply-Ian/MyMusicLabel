@@ -1,4 +1,5 @@
 using MyMusicLabel.Domain.Entities;
+using MyMusicLabel.Domain.Exceptions;
 using MyMusicLabel.Domain.Repos;
 
 namespace MyMusicLabel.Domain.Services;
@@ -12,16 +13,10 @@ public class StreamingPlatformDomainService(
     public void Publish(Release release, Guid artistId, Guid platformId, DateOnly date)
     {
         var artist = artistRepo.GetArtist(artistId);
-        if (!artist.HasRelease(release.Id))
-            throw new ArgumentException($"У артиста {artist.Name} нет релиза {release.Title}");
-        if (!artist.IsSignedToDate(date)) 
-            throw new InvalidOperationException("Невозможно опубликовать релиз, поскольку контракт с артистом не " +
-                                                "действует на указанную дату");
 
         /* Не внутри релиза, т. к. Track - отдельный агрегат. Release хранит Id-шники треков, и чтобы сделать эту же
          проверку внутри релиза, нужно передавать внутрь него (сущности) ссылку на репозиторий, что не очень хорошо */
-        if (!_releaseIsReadyForPublishing(release.TrackIds)) 
-            throw new ArgumentException("Релиз не готов к публикации или не содержит треков");
+        if (!_releaseIsReadyForPublishing(release.TrackIds)) throw new ReleaseNotReadyException(release);
         
         artist.MarkNewPublishedRelease(release.Id, platformId, date);
         
@@ -37,6 +32,7 @@ public class StreamingPlatformDomainService(
     public IEnumerable<decimal> GetTrackPaymentsInPeriod(Guid trackId, DateOnly startDate, DateOnly endDate) 
         => service.GetTrackPaymentsInPeriod(trackId, startDate, endDate);
 
+    // throws ReleaseNotPublishedException
     public void Revoke(Release release, Guid platformId, Guid artistId)
     {
         release.MarkRevoked(platformId); 

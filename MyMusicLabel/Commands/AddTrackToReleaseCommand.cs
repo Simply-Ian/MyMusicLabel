@@ -1,4 +1,5 @@
 using MyMusicLabel.Domain.Entities;
+using MyMusicLabel.Domain.Exceptions;
 using MyMusicLabel.Domain.Repos;
 using MyMusicLabel.Services;
 
@@ -9,7 +10,8 @@ internal class AddTrackToReleaseCommand(
     IArtistLookup artistLookup,
     ITrackResolver trackResolver,
     ITrackRepository trackRepo,
-    IArtistRepository artistRepo
+    IArtistRepository artistRepo,
+    IPlatformResolver platformResolver
 ) : ICommand
 {
     public void Invoke(string[] args, CommandContext context)
@@ -55,15 +57,22 @@ internal class AddTrackToReleaseCommand(
         {
             artist.AddTrackToRelease(release.Id, track);
         }
-        // TODO: ввести типы доменных исключений для разных ситуаций
-        catch (ArgumentException exc)
+        catch (ReleaseNotFoundException)
         {
-            Console.WriteLine($"Невозможно добавить трек в релиз: {exc.Message}");
+            Console.WriteLine($"Указанный релиз не найден");
             return;
         }
-        catch (InvalidOperationException exc)
+        catch (ReleaseAlreadyPublishedException)
         {
-            Console.WriteLine($"Невозможно добавить трек в релиз: {exc.Message}");
+            var platforms = release.PlatformsWherePublished
+                .Select(pair => platformResolver.Resolve(pair.Key));
+            Console.WriteLine($"Указанный релиз уже опубликован на платформах {string.Join(", ", platforms)} и не " +
+                              "может быть отредактирован");
+            return;
+        }
+        catch (ArtistMismatchException exc)
+        {
+            Console.WriteLine($"Трек {exc.Track} уже исполняется артистом {exc.Track!.PerformerId}");
             return;
         }
 
