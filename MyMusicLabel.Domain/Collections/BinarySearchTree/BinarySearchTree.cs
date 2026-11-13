@@ -22,17 +22,17 @@ internal class BinarySearchTree<TValue> : IEnumerable<TreeNode<TValue>>
             return;
         }
         
-        var parentLeaf = _getParentLeaf(value, _root!);
+        var parentLeaf = _getParentLeaf(value);
         TreeNode<TValue> newNode = new (value, parentLeaf);
         if (value.CompareTo(parentLeaf.Value) <= 0) parentLeaf.LeftChild = newNode;
         else parentLeaf.RightChild = newNode;
     }
 
-    private static TreeNode<TValue> _getParentLeaf(TValue value, TreeNode<TValue> root)
+    private TreeNode<TValue> _getParentLeaf(TValue value)
     {
         // Не получение итератора, т. к. итератор начинает с самого левого листа, а здесь надо сверху
-        var prevNode = root;
-        var currentNode = root;
+        var prevNode = _root;
+        var currentNode = _root;
         while (currentNode is not null)
         {
             prevNode = currentNode;

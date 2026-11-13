@@ -28,4 +28,4 @@
 
 Глоссарий, поддерживаемые инварианты и бизнес-правила см. в [MyMusicLabel.Domain/DomainDescription.md](MyMusicLabel.Domain/DomainDescription.md).
 
-Диаграмму классов предметной области см. в [ClassDiagram.drawio](ClassDiagram.drawio). Диаграмма **не полностью** отражает методы и свойства классов доменной области, но верно описывает взаимоотношения классов.
+Диаграмму классов предметной области см. в [ClassDiagram.drawio](ClassDiagram.drawio).

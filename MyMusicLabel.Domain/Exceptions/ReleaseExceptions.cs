@@ -2,7 +2,7 @@ using MyMusicLabel.Domain.Entities;
 
 namespace MyMusicLabel.Domain.Exceptions;
 
-public class ReleaseNotFoundException(Guid? id = null) : InvalidOperationException
+public class ReleaseNotFoundException(Guid? id = null) : ArgumentException
 {
     public Guid? ReleaseId => id;
 }
@@ -12,9 +12,9 @@ public class ReleaseNotReadyException(Release release) : Exception(
         ? $"Релиз {release.Title} не готов к публикации"
         : $"релиз {release.Title} не содержит треков");
         
-public class ReleaseAlreadyPublishedException : Exception;
+public class ReleaseAlreadyPublishedException : InvalidOperationException;
 
-public class ReleaseNotPublishedException(Guid platformId) : Exception
+public class ReleaseNotPublishedException(Guid platformId) : InvalidOperationException
 {
     public Guid PlatformId => platformId;
 }

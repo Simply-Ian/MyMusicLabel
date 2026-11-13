@@ -10,7 +10,6 @@ public class DictionaryArtistResolver : IArtistResolver
         _artistAliases[alias] = artistId;
         _aliasesById[artistId] = alias;
     }
-    public Guid Resolve(string alias) => _artistAliases[alias];
     public IReadOnlyDictionary<string, Guid> Aliases => _artistAliases;
     public IReadOnlyDictionary<Guid, string> AliasesById => _aliasesById;
 }

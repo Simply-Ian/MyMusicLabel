@@ -10,8 +10,6 @@ public class DictionaryPlatformResolver : IPlatformResolver
         Aliases = new Dictionary<string, Guid>(aliases, StringComparer.OrdinalIgnoreCase);
     }
 
-    public bool TryResolve(Guid platformId, out string alias) => _aliasesById.TryGetValue(platformId, out alias!);
-
     public string Resolve(Guid platformId) => _aliasesById[platformId];
 
     public IReadOnlyDictionary<Guid, string> AliasesById => _aliasesById;

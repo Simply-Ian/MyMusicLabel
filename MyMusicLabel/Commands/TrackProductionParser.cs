@@ -46,10 +46,7 @@ internal class TrackProductionParser(
             return "Трек с указанным коротким именем не найден";
         }
 
-        if (!artistLookup.TryGetArtist(artistAlias, out artist))
-            return "Артист с указанным коротким именем не найден";
-
-        return null;
+        return !artistLookup.TryGetArtist(artistAlias, out artist) ? "Артист с указанным коротким именем не найден" : null;
     }
 
     public string? TryParseRequest(IReadOnlyList<string> args, DateOnly date, out ProductionRequest request)
@@ -67,27 +64,22 @@ internal class TrackProductionParser(
         request = new ProductionRequest(track, author, terms, date);
         return null;
     }
-
-    public string? TryRun(string subject, Action action)
-    {
-        try
-        {
-            action();
-        }
-        catch (InvalidOperationException exc)
-        {
-            return $"Невозможно {subject}: {exc.Message}";
-        }
-        return null;
-    }
-
+    
     public string? TryProduce(string subject, ProductionRequest request, Func<TrackProducer> beginProduction)
-        => TryRun($"добавить {subject}", () =>
         {
-            var producer = beginProduction();
-            if (request.Terms.IsCharge) producer.ForCharge(request.Terms.Value / 100, request.Date);
-            else producer.ForFixedSum(request.Terms.Value, request.Date);
-        });
+            try
+            {
+                var producer = beginProduction();
+                if (request.Terms.IsCharge) producer.ForCharge(request.Terms.Value / 100, request.Date);
+                else producer.ForFixedSum(request.Terms.Value, request.Date);
+            }
+            catch (InvalidOperationException exc)
+            {
+                return $"Невозможно {subject}: {exc.Message}";
+            }
+
+            return null;
+        }
 
     public string DescribeTerms(ContractTerms terms, string subject)
         => terms.IsCharge ? $"отчисления {terms.Value}% от дохода" : $"выплата {terms.Value} руб. единоразово";
